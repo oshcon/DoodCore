@@ -1,0 +1,62 @@
+name: ${project.artifactId}
+version: ${project.version}
+authors: [oshcon]
+depend: [Vault]
+softdepend: [Essentials, SuperVanish, PremiumVanish, ProjectKorra, Towny, TownyChat, MarriageMaster, mcMMO]
+website: http://doodcraft.net/
+main: net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin
+
+commands:
+  core:
+    description: Base command
+  discord:
+    description: Discord command
+  afk:
+    description: AFK command
+  nick:
+    description: Nick command
+  testtext:
+    description: Test text command
+  sudo:
+    description: Sudo command
+  me:
+    description: Me command
+  say:
+    description: Say command
+  mytime:
+    description: MyTime command
+
+permissions:
+  core.command.core:
+    description: Allows players to use /core
+    default: OP
+  core.command.purge:
+    description: Allows players to use /core purge
+    default: OP
+  core.command.reload:
+    description: Allows players to use /core reload
+    default: OP
+  core.command.togglediscord:
+    description: Allows players to use /core togglediscord
+    default: OP
+  core.command.nick:
+    description: Allows players to use /nick
+    default: OP
+  core.command.nick.colors:
+    description: Allows players to use color codes in their nicks
+    default: OP
+  core.command.say:
+    description: Allows players to use /say
+    default: OP
+  core.command.sudo:
+    description: Allows players to use /sudo
+    default: OP
+  core.command.testtext:
+    description: Allows players to use /testtext
+    default: OP
+  core.chat.colors:
+    description: Allows players to use color codes in chat
+    default: OP
+  core.afk.kickbypass:
+    description: Prevents afk players from being kicked
+    default: OP

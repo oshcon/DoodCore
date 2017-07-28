@@ -31,7 +31,7 @@ public class AfkCommand implements CommandExecutor {
                             sender.sendMessage("§7You are already marked AFK.");
                         }
                     }
-                },10L);
+                },5L);
 
                 return true;
             } else {

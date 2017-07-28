@@ -59,7 +59,7 @@ public class PlayerListener implements Listener {
         }
 
         // Check total play time, give Veteran rank if over 86400000 millis.
-        if (cPlayer.getCurrentActiveTime() >= 86400000L) {
+        if (cPlayer.getCurrentActiveTime() >= 30000L) {
             // They need to be a Veteran now.
             // Update their role on Discord. Let syncRank do the rest.
             // This requires their account to be synced to discord. Check if they are ignoring reminders.

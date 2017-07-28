@@ -437,6 +437,7 @@ public class DiscordManager {
     }
 
     public static void syncRank(CorePlayer cPlayer) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group set Member");
         Bukkit.getScheduler().scheduleSyncDelayedTask(DoodCorePlugin.plugin, new Runnable() {
             @Override
             public void run() {

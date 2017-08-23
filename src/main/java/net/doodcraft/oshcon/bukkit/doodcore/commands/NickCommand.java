@@ -15,7 +15,7 @@ public class NickCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 if (!PlayerMethods.hasPermission(player, "core.command.nick", true)) {
                     return false;
@@ -40,12 +40,12 @@ public class NickCommand implements CommandExecutor {
                 }
 
                 if (PlayerMethods.hasPermission(player, "core.command.nick.colors", false)) {
-                    cPlayer.setNickName(StaticMethods.addColor(args[0]).replaceAll("§k", ""));
+                    cPlayer.setNick(StaticMethods.addColor(args[0]).replaceAll("§k", ""));
                 } else {
-                    cPlayer.setNickName(StaticMethods.removeColor(args[0]));
+                    cPlayer.setNick(StaticMethods.removeColor(args[0]));
                 }
 
-                sender.sendMessage("§7Nick set successfully, " + cPlayer.getNickName() + "§7!");
+                sender.sendMessage("§7Nick set successfully, " + cPlayer.getNick() + "§7!");
                 return true;
             } else {
                 sender.sendMessage("Console can't use this command.");

@@ -16,7 +16,7 @@ public class AfkCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
                     @Override
@@ -31,7 +31,7 @@ public class AfkCommand implements CommandExecutor {
                             sender.sendMessage("§7You are already marked AFK.");
                         }
                     }
-                },5L);
+                }, 5L);
 
                 return true;
             } else {

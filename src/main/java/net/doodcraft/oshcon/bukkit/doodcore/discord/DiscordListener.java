@@ -7,7 +7,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
@@ -32,19 +31,17 @@ public class DiscordListener {
                         if (value.equals(event.getAuthor())) {
                             DiscordCommand.awaitingLinkReply.remove(key);
                             Player player = Bukkit.getPlayer(key);
-                            if (player != null) {
+                            CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
+                            if (cPlayer != null) {
                                 event.getAuthor().getOrCreatePMChannel().sendMessage("Accepted " + player.getName() + "'s sync request. Your Discord and in-game profiles are now synchronized!");
-                                player.sendMessage(" ");
-                                player.sendMessage("§7Your Discord user role (" + DiscordManager.getDiscordRankPrefix(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor()) + DiscordManager.getMatchingGameRank(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor()) + "§7) and ID are now synchronized! §c❤");
+                                cPlayer.getPlayer().sendMessage("§7Your Discord user role (" + DiscordManager.getDiscordRankPrefix(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor()) + DiscordManager.getMatchingGameRank(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor(), cPlayer) + "§7) and ID are now synchronized! §c❤");
                                 // Set Discord ID
-                                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
                                 cPlayer.setDiscordUserId(event.getAuthor().getLongID());
                                 DiscordManager.awardPlayer(cPlayer);
                                 cPlayer.setSyncedOnce(true);
-                                cPlayer.save();
                                 // Add to ID map.
                                 Configuration idmap = DiscordManager.idMap();
-                                idmap.set(cPlayer.getDiscordUserId().toString(), cPlayer.getUniqueId().toString());
+                                idmap.set(cPlayer.getDiscordId().toString(), cPlayer.getUniqueId().toString());
                                 idmap.save();
                                 DiscordManager.syncRank(cPlayer);
                             } else {

@@ -19,7 +19,7 @@ public class SayCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 if (!PlayerMethods.hasPermission(player, "core.command.say", true)) {
                     return false;
@@ -37,7 +37,7 @@ public class SayCommand implements CommandExecutor {
                                 sender.sendMessage("§7Usage: §b/say The server will be restarting in 5m.");
                             }
                         }
-                    },1L);
+                    }, 1L);
                 }
 
                 return true;
@@ -54,7 +54,7 @@ public class SayCommand implements CommandExecutor {
                             sender.sendMessage("§7Usage: §b/say The server will be restarting in 5m.");
                         }
                     }
-                },1L);
+                }, 1L);
                 return false;
             }
         }

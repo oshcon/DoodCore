@@ -1,30 +1,59 @@
 name: ${project.artifactId}
 version: ${project.version}
 authors: [oshcon]
-depend: [Vault]
-softdepend: [Essentials, SuperVanish, PremiumVanish, ProjectKorra, Towny, TownyChat, MarriageMaster, mcMMO]
+softdepend: [Votifier, Vault, Essentials, SuperVanish, PremiumVanish, ProjectKorra, Towny, TownyChat, MarriageMaster, mcMMO]
 website: http://doodcraft.net/
 main: net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin
 
 commands:
   core:
-    description: Base command
+    description: Administrative command
   discord:
-    description: Discord command
+    description: Manage your Discord information
   afk:
-    description: AFK command
+    description: Toggle your AFK status
   nick:
-    description: Nick command
+    description: Set your nickname
   testtext:
-    description: Test text command
+    description: Administrative command
   sudo:
-    description: Sudo command
+    description: Administrative command
   me:
-    description: Me command
+    description: Express an emote
   say:
-    description: Say command
+    description: Administrative command
   mytime:
-    description: MyTime command
+    description: Check your total play time
+  wild:
+    description: Random teleport into unclaimed wilderness
+  spawn:
+    description: Teleport to the worlds spawn
+  seen:
+    description: Check a players last join and quit time
+  givepet:
+    description: Give another player a pet
+  home:
+    description: Teleport yourself to your home
+  homes:
+    description: List your homes
+  removehome:
+    description: Remove a home
+  sethome:
+    description: Set your home location
+  back:
+    description: Teleport to your last death location
+  vote:
+    description: Vote for the server
+  tpa:
+    description: Send a request to tp to someone
+  tpahere:
+    description: Send a request for someone to tp to you
+  tpcancel:
+    description: Cancel your last tp request
+  tpaccept:
+    description: Accept someones tp request
+  tpdeny:
+    description: Deny someones tp request
 
 permissions:
   core.command.core:
@@ -54,9 +83,65 @@ permissions:
   core.command.testtext:
     description: Allows players to use /testtext
     default: OP
+  core.command.wild:
+    description: Allows players to use /wild
+    default: OP
+  core.command.spawn:
+    description: Allows players to use /spawn
+    default: OP
+  core.command.givepet:
+    description: Allows players to use /givepet
+    default: OP
+  core.command.home:
+    description: Allows players to use /home
+    default: OP
+  core.command.homes:
+    description: Allows players to use /homes
+    default: OP
+  core.command.removehome:
+    description: Allows players to use /removehome
+    default: OP
+  core.command.sethome:
+    description: Allows players to use /sethome
+    default: OP
   core.chat.colors:
     description: Allows players to use color codes in chat
     default: OP
-  core.afk.kickbypass:
+  core.bypass.afkkick:
     description: Prevents afk players from being kicked
     default: OP
+  core.command.back:
+    description: Allows players to use /back
+    default: OP
+  core.bypass.cooldowns:
+    description: Allows players to bypass command cooldowns
+    default: OP
+  core.bypass.vote:
+    description: Allows players to bypass vote requirements
+    default: OP
+  core.command.tps:
+    description: Check the current tick rate
+    default: OP
+  core.bypass.warmups:
+    description: Allows players to bypass teleport warmups
+    default: OP
+  core.command.uuid:
+    description: Get a players name based UUID
+    default: OP
+  core.command.vote:
+    decsription: See your vote stats and vote sites
+    default: OP
+  core.command.tpa:
+    description: Allows players to use /tpa
+    default: OP
+  core.command.tpahere:
+    description: Allows players to use /tpahere
+    default: OP
+  core.command.tpcancel:
+    description: Allows players to use /tpcancel
+    default: OP
+  core.command.tpaccept:
+    description: Allows players to use /tpaccept
+    default: OP
+  core.command.tpdeny:
+    description: Allows players to use /tpdeny

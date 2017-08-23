@@ -18,21 +18,21 @@ public class MeCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 if (cPlayer != null) {
                     Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
                         @Override
                         public void run() {
                             if (args.length >= 1) {
-                                Bukkit.broadcastMessage(Messages.parse(cPlayer, "§e* <nick> §e" + Joiner.on(" ").join(args)));
+                                Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8* <nick> §7" + Joiner.on(" ").join(args)));
                                 DiscordManager.sendGameMe(player, Joiner.on(" ").join(args));
                             } else {
                                 sender.sendMessage("§7Broadcast an emotion.");
                                 sender.sendMessage("§7Usage: §b/me scratches head in confusion");
                             }
                         }
-                    },1L);
+                    }, 1L);
                 }
 
                 return true;

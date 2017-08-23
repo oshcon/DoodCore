@@ -1,7 +1,9 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
+import mkremins.fanciful.FancyMessage;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
@@ -25,7 +27,7 @@ public class CoreCommand implements CommandExecutor {
                 }
 
                 if (args.length == 0) {
-                    sender.sendMessage("Invalid command.");
+                    sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid");
                     return true;
                 }
 
@@ -62,7 +64,7 @@ public class CoreCommand implements CommandExecutor {
                         return true;
                     }
 
-                    sender.sendMessage("Invalid args.");
+                    sender.sendMessage("Valid args: items, monsters");
                     return false;
                 }
 
@@ -82,7 +84,32 @@ public class CoreCommand implements CommandExecutor {
                     }
                 }
 
-                sender.sendMessage("Invalid command.");
+                if (args[0].equalsIgnoreCase("tps")) {
+                    if (!PlayerMethods.hasPermission(player, "core.command.tps", true)) {
+                        return false;
+                    }
+
+                    sender.sendMessage("Current Tick Rate: " + Lag.getTPS());
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("uuid")) {
+                    if (!PlayerMethods.hasPermission(player, "core.command.uuid", true)) {
+                        return false;
+                    }
+
+                    if (args.length != 2) {
+                        sender.sendMessage("Please supply a name.");
+                        return false;
+                    }
+
+                    FancyMessage msg = new FancyMessage(PlayerMethods.getCrackedUUID(args[1]).toString());
+                    msg.suggest(PlayerMethods.getCrackedUUID(args[1]).toString());
+                    msg.send(player);
+                    return true;
+                }
+
+                sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid");
                 return false;
             } else {
                 if (args.length == 0) {
@@ -125,6 +152,22 @@ public class CoreCommand implements CommandExecutor {
                         DiscordManager.toggled = true;
                         sender.sendMessage("Discord <-> Minecraft communication has been enabled.");
                     }
+                }
+
+                if (args[0].equalsIgnoreCase("tps")) {
+                    sender.sendMessage("Current Tick Rate: " + Lag.getTPS());
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("uuid")) {
+
+                    if (args.length != 2) {
+                        sender.sendMessage("Please supply a name.");
+                        return false;
+                    }
+
+                    sender.sendMessage(PlayerMethods.getCrackedUUID(args[1]).toString());
+                    return true;
                 }
             }
         }

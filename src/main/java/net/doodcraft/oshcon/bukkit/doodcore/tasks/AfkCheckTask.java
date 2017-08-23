@@ -1,17 +1,18 @@
-package net.doodcraft.oshcon.bukkit.doodcore.afk;
+package net.doodcraft.oshcon.bukkit.doodcore.tasks;
 
+import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class AfkTask implements Runnable {
+public class AfkCheckTask implements Runnable {
 
     Player player;
     UUID uuid;
 
-    public AfkTask(Player player) {
+    public AfkCheckTask(Player player) {
         this.player = player;
         this.uuid = player.getUniqueId();
         run();
@@ -19,7 +20,7 @@ public class AfkTask implements Runnable {
 
     @Override
     public void run() {
-        CorePlayer cPlayer = CorePlayer.players.get(uuid);
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(uuid);
 
         if (cPlayer == null) {
             StaticMethods.log("Null cPlayer for AFK task: " + this.player.getName());
@@ -36,7 +37,7 @@ public class AfkTask implements Runnable {
                     return;
                 }
                 if ((System.currentTimeMillis() - AfkHandler.lastAction.get(uuid)) >= (long) (600 * 1000)) {
-                    if (!cPlayer.getPlayer().hasPermission("core.afk.kickbypass")) {
+                    if (!cPlayer.getPlayer().hasPermission("core.bypass.afkkick")) {
                         cPlayer.getPlayer().kickPlayer("§bYou were kicked for being AFK too long.");
                     }
                 }

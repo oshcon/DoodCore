@@ -1,7 +1,6 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import com.google.common.base.Joiner;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
@@ -29,7 +28,6 @@ public class DiscordCommand implements CommandExecutor {
                 Player player = (Player) sender;
 
                 if (args.length == 0) {
-                    sender.sendMessage(" ");
                     sender.sendMessage("§dJoin our Discord server! §ehttps://discord.gg/Z7GSpc4");
                     sender.sendMessage("§3Valid commands:");
                     sender.sendMessage("  §b/discord who: §7Display online Discord users");
@@ -66,7 +64,6 @@ public class DiscordCommand implements CommandExecutor {
                 if (args[0].equalsIgnoreCase("sync")) {
 
                     if (args.length == 1) {
-                        sender.sendMessage(" ");
                         sender.sendMessage("§7First, join our Discord server: §e https://discord.gg/Z7GSpc4");
                         sender.sendMessage("§7Then supply your Discord username. (Not your nickname)");
                         sender.sendMessage("§3Correct Examples: ");
@@ -91,7 +88,6 @@ public class DiscordCommand implements CommandExecutor {
                         }
                     }
 
-                    sender.sendMessage(" ");
                     sender.sendMessage("§cThat user could not be found. Have you joined our Discord server?");
                     sender.sendMessage("§7If you continue to have issues, contact a member of staff.");
                     sender.sendMessage("§3Correct Examples: ");
@@ -102,9 +98,9 @@ public class DiscordCommand implements CommandExecutor {
                 }
 
                 if (args[0].equalsIgnoreCase("unsync")) {
-                    CorePlayer cPlayer = CorePlayer.players.get(((Player) sender).getUniqueId());
+                    CorePlayer cPlayer = CorePlayer.getPlayers().get(((Player) sender).getUniqueId());
                     if (cPlayer != null) {
-                        if (cPlayer.getDiscordUserId() != 0) {
+                        if (cPlayer.getDiscordId() != 0L) {
                             DiscordManager.unSyncDiscord(cPlayer);
                             sender.sendMessage("§7Un-synced your Discord account successfully!");
                             return true;
@@ -118,33 +114,32 @@ public class DiscordCommand implements CommandExecutor {
                 }
 
                 if (args[0].equalsIgnoreCase("hide")) {
-                    CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                    CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
                     if (cPlayer.isIgnoringDiscord()) {
-                        cPlayer.setIgnoresDiscord(false);
+                        cPlayer.setIgnoringDiscord(false);
                         player.sendMessage("§7You are no longer hiding Discord messages.");
                         return true;
                     } else {
-                        cPlayer.setIgnoresDiscord(true);
-                        player.sendMessage("§7All Discord messages will now be hidden until you enable them again.");
+                        cPlayer.setIgnoringDiscord(true);
+                        player.sendMessage("§7All Discord messages will be hidden until you re-enable them.");
                         return true;
                     }
                 }
 
                 if (args[0].equalsIgnoreCase("reminder")) {
-                    CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                    CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
                     if (cPlayer.isIgnoringDiscordReminder()) {
-                        cPlayer.setIgnoresDiscordReminder(false);
-                        player.sendMessage("§7You are no longer ignoring sync reminders.");
+                        cPlayer.setIgnoringDiscordReminders(false);
+                        player.sendMessage("§7You will now receive Discord sync reminders.");
                         DiscordManager.startReminderTask(cPlayer);
                         return true;
                     } else {
-                        cPlayer.setIgnoresDiscordReminder(true);
+                        cPlayer.setIgnoringDiscordReminders(true);
                         player.sendMessage("§7You will no longer receive Discord sync reminders.");
                         return true;
                     }
                 }
 
-                sender.sendMessage(" ");
                 sender.sendMessage("§cInvalid command.");
                 sender.sendMessage("§3Valid commands:");
                 sender.sendMessage("  §b/discord who: §7Display online Discord users");
@@ -191,7 +186,7 @@ public class DiscordCommand implements CommandExecutor {
 
     private static boolean trySync(CommandSender sender, IUser user) {
         // Check if there is already a pairing.
-        if (CorePlayer.players.get(((Player) sender).getUniqueId()).getDiscordUserId() != 0L) {
+        if (CorePlayer.getPlayers().get(((Player) sender).getUniqueId()).getDiscordId() != 0L) {
             sender.sendMessage("§7You have already synced with a Discord account. If you need to change this, contact a member of staff.");
             return false;
         }
@@ -211,7 +206,7 @@ public class DiscordCommand implements CommandExecutor {
             awaitingLinkReply.remove(((Player) sender).getUniqueId());
         }
         try {
-            user.getOrCreatePMChannel().sendMessage( sender.getName() + " from  *`mc.doodcraft.net`*  is attempting to sync your Discord ID and user rank to their in-game profile. If you sent this request, reply to this message with a `yes`. If you did not authorize this request or are unsure what this is, ignore this message, or just type `no`.");
+            user.getOrCreatePMChannel().sendMessage(sender.getName() + " from  *`mc.doodcraft.net`*  is attempting to sync your Discord ID and user rank to their in-game profile. If you sent this request, reply to this message with a `yes`. If you did not authorize this request or are unsure what this is, ignore this message, or just type `no`.");
             awaitingLinkReply.put(((Player) sender).getUniqueId(), user);
             sender.sendMessage("§7Sync request sent! Check Discord for a message from the bot.");
             return true;

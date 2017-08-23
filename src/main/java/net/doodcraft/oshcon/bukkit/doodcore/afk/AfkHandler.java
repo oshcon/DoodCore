@@ -1,10 +1,10 @@
 package net.doodcraft.oshcon.bukkit.doodcore.afk;
 
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.AfkCheckTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class AfkHandler {
     public static void addAllPlayers() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
-            int task = Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new AfkTask(player), 0L, 10L);
+            int task = Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new AfkCheckTask(player), 0L, 10L);
             if (!tasks.containsKey(uuid)) {
                 tasks.put(uuid, task);
             } else {

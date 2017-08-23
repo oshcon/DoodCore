@@ -1,6 +1,8 @@
-package net.doodcraft.oshcon.bukkit.doodcore.discord;
+package net.doodcraft.oshcon.bukkit.doodcore.tasks;
 
-public class DiscordTask implements Runnable {
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+
+public class DiscordUpdateTask implements Runnable {
     @Override
     public void run() {
         if (DiscordManager.client != null) {

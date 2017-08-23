@@ -21,7 +21,7 @@ public class SudoCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 if (!PlayerMethods.hasPermission(player, "core.command.sudo", true)) {
                     return false;
@@ -49,7 +49,7 @@ public class SudoCommand implements CommandExecutor {
                                 sender.sendMessage("§7Usage: §b/sudo Dooder07 /restart");
                             }
                         }
-                    },1L);
+                    }, 1L);
                 }
 
                 return true;
@@ -75,7 +75,7 @@ public class SudoCommand implements CommandExecutor {
                             sender.sendMessage("§7Usage: §b/sudo Dooder07 /restart");
                         }
                     }
-                },1L);
+                }, 1L);
                 return false;
             }
         }

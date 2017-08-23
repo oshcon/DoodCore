@@ -8,6 +8,8 @@ import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordReminderTask;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -22,10 +24,10 @@ import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DiscordManager {
@@ -61,7 +63,7 @@ public class DiscordManager {
                 client.login();
             }
 
-            Bukkit.getScheduler().scheduleAsyncRepeatingTask(DoodCorePlugin.plugin, new DiscordTask(), 0L, 30*20);
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new DiscordUpdateTask(), 0L, 30 * 20);
         }
     }
 
@@ -84,16 +86,16 @@ public class DiscordManager {
     }
 
     public static void broadcastToMinecraft(String string) {
-        for (CorePlayer cPlayer : CorePlayer.players.values()) {
+        for (CorePlayer cPlayer : CorePlayer.getPlayers().values()) {
             if (!cPlayer.isIgnoringDiscord()) {
-                //
+                cPlayer.getPlayer().sendMessage(string);
             }
         }
     }
 
     public static void sendGameChat(Player player, String message) {
 
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
         if (cPlayer != null) {
             if (cPlayer.isIgnoringDiscord()) {
                 return;
@@ -101,18 +103,19 @@ public class DiscordManager {
 
             try {
                 EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[" + StaticMethods.removeColor(cPlayer.getNickName()) + "]`**  " + message);
+                builder.withDescription("**`[" + StaticMethods.removeColor(cPlayer.getNick()) + "]`**  " + message);
                 builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
                 builder.withColor(66, 179, 244);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void sendGameMe(Player player, String message) {
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
         if (cPlayer != null) {
             if (cPlayer.isIgnoringDiscord()) {
                 return;
@@ -120,20 +123,21 @@ public class DiscordManager {
 
             try {
                 EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[EMOTE]`**  *" + message + "*");
+                builder.withDescription(StaticMethods.removeColor("*" + cPlayer.getNick() + " " + message + "*"));
                 builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
                 builder.withColor(66, 179, 244);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void sendGameSay(Player player, String message) {
         try {
             if (player != null) {
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
                 if (cPlayer != null) {
                     if (cPlayer.isIgnoringDiscord()) {
                         return;
@@ -142,9 +146,9 @@ public class DiscordManager {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.withDescription("**`[DOODCRAFT]`**  " + message);
                 builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182,66,244);
+                builder.withColor(182, 66, 244);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
             } else {
                 EmbedBuilder builder = new EmbedBuilder();
@@ -152,15 +156,16 @@ public class DiscordManager {
                 builder.withAuthorName(StaticMethods.removeColor("CONSOLE"));
                 builder.withAuthorIcon("https://crafatar.com/avatars/CONSOLE?default=CONSOLE&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182,66,244);
+                builder.withColor(182, 66, 244);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendGameLogin(Player player) {
 
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
         if (cPlayer != null) {
             if (cPlayer.isIgnoringDiscord()) {
                 return;
@@ -170,17 +175,18 @@ public class DiscordManager {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.withDescription("**`[JOIN]`**  " + player.getName() + " joined the game.");
                 builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
                 builder.withColor(72, 244, 66);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void sendGameQuit(Player player) {
 
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
         if (cPlayer != null) {
             if (cPlayer.isIgnoringDiscord()) {
                 return;
@@ -190,17 +196,18 @@ public class DiscordManager {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.withDescription("**`[QUIT]`**  " + player.getName() + " left the game.");
                 builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
                 builder.withColor(244, 75, 66);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void sendGameDeath(Player player, String message) {
 
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
         if (cPlayer != null) {
             if (cPlayer.isIgnoringDiscord()) {
                 return;
@@ -210,11 +217,12 @@ public class DiscordManager {
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.withDescription("**`[DEATH]`**  " + message);
                 builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getUniqueId() + "?default=MHF_Steve&overlay");
+                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
                 builder.withTimestamp(System.currentTimeMillis());
                 builder.withColor(229, 244, 66);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -227,14 +235,14 @@ public class DiscordManager {
                 builder.withAuthorName("Minecraft");
                 builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
                 builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182,66,244);
+                builder.withColor(182, 66, 244);
                 RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
                 return;
             }
 
             List<String> names = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
-                CorePlayer cPlayer = CorePlayer.players.get(p.getUniqueId());
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(p.getUniqueId());
 
                 String name = p.getName();
                 if (cPlayer != null) {
@@ -255,9 +263,10 @@ public class DiscordManager {
             builder.withAuthorName("Minecraft");
             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
             builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182,66,244);
+            builder.withColor(182, 66, 244);
             RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendGameOnline() {
@@ -274,13 +283,14 @@ public class DiscordManager {
                             builder.withAuthorName("Minecraft");
                             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
                             builder.withTimestamp(System.currentTimeMillis());
-                            builder.withColor(182,66,244);
+                            builder.withColor(182, 66, 244);
                             RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
                         }
                     }
                 }
-            },20L);
-        } catch (Exception ignored) {}
+            }, 40L);
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendGameOffline() {
@@ -290,9 +300,10 @@ public class DiscordManager {
             builder.withAuthorName("Minecraft");
             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
             builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182,66,244);
+            builder.withColor(182, 66, 244);
             RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendGameHelp() {
@@ -304,21 +315,23 @@ public class DiscordManager {
             builder.withAuthorName("Minecraft");
             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
             builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182,66,244);
+            builder.withColor(182, 66, 244);
             RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendSync(IUser user) {
         try {
             EmbedBuilder builder = new EmbedBuilder();
-            builder.appendField("**`[SYNC]`**", "Syncing will pair your Discord account with your in-game profile. Upon logging in to mc.doodcraft.net, your in-game rank will automatically update to match your Discord rank. Get started by joining the server and typing `/discord sync`.", true);
+            builder.appendField("**`[SYNC]`**", "Syncing will pair your Discord account with your in-game profile. Upon logging in to the Minecraft server, your in-game rank will automatically update to match your Discord rank. Get started by joining then typing `/discord sync`.", true);
             builder.withAuthorName("Minecraft");
             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
             builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182,66,244);
+            builder.withColor(182, 66, 244);
             RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static void sendNukeRoll(IUser user) {
@@ -328,9 +341,10 @@ public class DiscordManager {
             builder.withAuthorName("Minecraft");
             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
             builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182,66,244);
+            builder.withColor(182, 66, 244);
             RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public static Boolean isStaff(IGuild guild, IUser user) {
@@ -362,11 +376,11 @@ public class DiscordManager {
         if (roles.toString().contains("Bouncers")) {
             return "§3";
         }
-        if (roles.toString().contains("Trainees")) {
-            return "§b";
-        }
         if (roles.toString().contains("Artists")) {
             return "§d";
+        }
+        if (roles.toString().contains("Trainees")) {
+            return "§b";
         }
         if (roles.toString().contains("Veterans")) {
             return "§2";
@@ -375,23 +389,27 @@ public class DiscordManager {
         return "§a";
     }
 
-    public static String getMatchingGameRank(IGuild guild, IUser user) {
-        List<IRole> roles = guild.getRolesForUser(user);
+    public static String getMatchingGameRank(IGuild guild, IUser user, CorePlayer cPlayer) {
+        if (guild.getUsers().contains(user)) {
+            List<IRole> roles = guild.getRolesForUser(user);
 
-        if (roles.toString().contains("Administrators")) {
-            return "Administrator";
-        }
-        if (roles.toString().contains("Bouncers")) {
-            return "Bouncer";
-        }
-        if (roles.toString().contains("Trainees")) {
-            return "Trainee";
-        }
-        if (roles.toString().contains("Artists")) {
-            return "Artist";
-        }
-        if (roles.toString().contains("Veterans")) {
-            return "Veteran";
+            if (roles.toString().contains("Administrators")) {
+                return "Administrator";
+            }
+            if (roles.toString().contains("Bouncers")) {
+                return "Bouncer";
+            }
+            if (roles.toString().contains("Artists")) {
+                return "Artist";
+            }
+            if (roles.toString().contains("Trainees")) {
+                return "Trainee";
+            }
+            if (roles.toString().contains("Veterans")) {
+                return "Veteran";
+            }
+        } else {
+            unSyncDiscord(cPlayer);
         }
 
         // default
@@ -403,56 +421,130 @@ public class DiscordManager {
     }
 
     public static void addReminderTask(CorePlayer player) {
-        if (ReminderTask.tasks.containsKey(player.getUniqueId())) {
-            Bukkit.getScheduler().cancelTask(ReminderTask.tasks.get(player.getUniqueId()));
-            Integer remove = ReminderTask.tasks.get(player.getUniqueId());
-            ReminderTask.tasks.remove(remove);
+        if (DiscordReminderTask.tasks.containsKey(player.getUniqueId())) {
+            Bukkit.getScheduler().cancelTask(DiscordReminderTask.tasks.get(player.getUniqueId()));
+            DiscordReminderTask.tasks.remove(player.getUniqueId());
             Integer task = startReminderTask(player);
-            ReminderTask.tasks.put(player.getUniqueId(), task);
+            DiscordReminderTask.tasks.put(player.getUniqueId(), task);
         } else {
             Integer task = startReminderTask(player);
-            ReminderTask.tasks.put(player.getUniqueId(), task);
+            DiscordReminderTask.tasks.put(player.getUniqueId(), task);
         }
     }
 
     public static Integer startReminderTask(CorePlayer player) {
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new ReminderTask(player), 180L*20L);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new DiscordReminderTask(player), 180L * 20L);
         return task.getTaskId();
     }
 
     public static void awardPlayer(CorePlayer cPlayer) {
         if (!cPlayer.hasSyncedBefore()) {
             try {
-                Vault.economy.depositPlayer(cPlayer.getPlayer(), 2500);
-                cPlayer.getPlayer().sendMessage("");
-                cPlayer.getPlayer().sendMessage("§7You've earned $2500 for syncing your account!");
-            } catch(Exception ex) {
+                if (Compatibility.isHooked("Vault") && Vault.economy == null && Vault.economy.isEnabled()) {
+                    Vault.economy.depositPlayer(cPlayer.getPlayer(), 500);
+                    cPlayer.getPlayer().sendMessage("§7You've earned §6§l$500 §7for syncing your accounts!");
+                }
+            } catch (Exception ex) {
                 cPlayer.getPlayer().sendMessage("§7There was an error giving your sync reward. Notify a staff member.");
-                StaticMethods.log("There was an error giving a sync reward ($2500) to " + cPlayer.getName());
+                StaticMethods.log("There was an error giving a sync reward ($500) to " + cPlayer.getName());
             }
         } else {
-            cPlayer.getPlayer().sendMessage("");
             cPlayer.getPlayer().sendMessage("§7You cannot receive more than one reward for this action. Sorry!");
         }
     }
 
     public static void syncRank(CorePlayer cPlayer) {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group set Member");
-        Bukkit.getScheduler().scheduleSyncDelayedTask(DoodCorePlugin.plugin, new Runnable() {
-            @Override
-            public void run() {
-                if (cPlayer != null) {
-                    IUser user = DiscordManager.client.getUserByID(cPlayer.getDiscordUserId());
-                    if (user != null) {
-                        String rank = DiscordManager.getMatchingGameRank(DiscordManager.client.getGuildByID(Settings.discordGuild), user);
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group set " + rank);
-                        if (user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Supporter")) {
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
-                        }
-                    }
+
+        if (cPlayer.getDiscordId() != 0L) {
+            IUser user = DiscordManager.client.getUserByID(cPlayer.getDiscordId());
+            if (user != null) {
+                String rank = DiscordManager.getMatchingGameRank(DiscordManager.client.getGuildByID(Settings.discordGuild), user, cPlayer);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group set " + rank);
+                if (user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Supporter")) {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
+                    cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
                 }
             }
-        });
+        }
+
+        autoRankVeteran(cPlayer);
+        autoRankSupporter(cPlayer);
+    }
+
+    public static void autoRankVeteran(CorePlayer cPlayer) {
+        if (cPlayer.getCurrentActiveTime() >= 3600 * 1000) {
+            // They need to be a Veteran now.
+            // Update their role on Discord. Let syncRank do the rest.
+            // This requires their account to be synced to discord. Check if they are ignoring reminders.
+            if (!Compatibility.isHooked("Vault") || Vault.permission == null || !Vault.permission.isEnabled()) {
+                return;
+            }
+
+            if (Arrays.toString(Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())).contains("Veteran")) {
+                StaticMethods.log(cPlayer.getName() + " is already a Veteran.");
+                return;
+            }
+
+            if (cPlayer.getDiscordId() != 0L) {
+                if (DiscordManager.client.getUserByID(cPlayer.getDiscordId()) != null) {
+                    IUser user = DiscordManager.client.getUserByID(cPlayer.getDiscordId());
+
+                    // If they have the Veteran rank on Discord, give it in-game.
+                    if (user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Veteran")) {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Veteran");
+                    }
+
+                    // If they have the Veteran rank in-game, give it on Discord.
+                    if (Vault.permission.getPrimaryGroup(null, cPlayer.getPlayer()).equalsIgnoreCase("Veteran")) {
+                        if (!user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Veteran")) {
+                            user.addRole(DiscordManager.client.getGuildByID(Settings.discordGuild).getRolesByName("Veterans").get(0));
+                        }
+                    }
+                } else {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Veteran");
+                    StaticMethods.log(cPlayer.getName() + " ranked to Veteran in-game, however their Discord ID is invalid, skipping Discord promotion.");
+                }
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Veteran");
+            }
+        }
+    }
+
+    // Only attempt this after attempting to sync Discord.
+    public static void autoRankSupporter(CorePlayer cPlayer) {
+
+        if (!Compatibility.isHooked("Vault") || Vault.permission == null || !Vault.permission.isEnabled()) {
+            return;
+        }
+
+        if (Arrays.toString(Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())).contains("Supporter")) {
+            StaticMethods.log(cPlayer.getName() + " is already a Supporter.");
+            return;
+        }
+
+        if (cPlayer.getDiscordId() == 0L) {
+            try {
+                URL url = new URL("https://gist.githubusercontent.com/oshcon/c94e617050ff370987479e77048cda50/raw/ae890a4cd4feadc5f3c617aee667137ff977bff7/supporters.txt");
+                File supporterList = new File(url.getFile());
+                Configuration supporters = new Configuration(supporterList);
+                if (supporters.getKeys(false).contains(cPlayer.getName())) {
+                    // Check the time difference. 5259492000 is two months.
+                    Long time = (Long) supporters.get(cPlayer.getName());
+                    if ((System.currentTimeMillis() - time) < 5259492000L) {
+                        // Their supporter status has not expired.
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
+                        cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
+                        return;
+                    }
+                    // Their supporter status has expired. Notify them of this, since they will not get a Discord notification.
+                    // TODO: Remove the user from the supporter list. Will need to use the Gist API, if possible.
+                    StaticMethods.log(cPlayer.getName() + "'s supporter status has expired. Remind them to renew?");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     public static void broadcastJson(Player player, String message) {
@@ -460,22 +552,10 @@ public class DiscordManager {
         Bukkit.getScheduler().runTask(DoodCorePlugin.plugin, new Runnable() {
             @Override
             public void run() {
-                CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
-                String supporter = "";
-
-                if (Compatibility.isHooked("Vault")) {
-                    for (String group : Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())) {
-                        if (group.equalsIgnoreCase("Supporter")) {
-                            supporter = "§6§lSUPPORTER";
-                        }
-                    }
-                }
+                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 FancyMessage msg = new FancyMessage(Messages.parse(cPlayer, "<roleprefix><nick>"));
-                String hover = Messages.parse(cPlayer, "§7Time: §r<time>\n§7Name: §f<name>\n§7Group: §f<roleprefix><role>\n§7Element: §f<element>\n§7Discord: §f<discordname>\n§7Minutes Played: §f§o<totalactive>\n§7Minutes AFK: §f§o<totalafk>");
-                if (!supporter.equals("")) {
-                    hover = hover + "\n" + supporter;
-                }
+                String hover = Messages.parse(cPlayer, Messages.getHover(cPlayer));
 
                 msg.tooltip(hover);
                 msg.then("§8: §r" + message);
@@ -497,10 +577,9 @@ public class DiscordManager {
             }
         }
 
-        idmap.remove(cPlayer.getDiscordUserId().toString());
+        idmap.remove(cPlayer.getDiscordId().toString());
         idmap.save();
 
         cPlayer.setDiscordUserId(0L);
-        cPlayer.save();
     }
 }

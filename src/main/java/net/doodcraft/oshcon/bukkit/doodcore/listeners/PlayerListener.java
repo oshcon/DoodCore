@@ -4,26 +4,23 @@ import at.pcgamingfreaks.MarriageMaster.Bukkit.Commands.MarryChat;
 import at.pcgamingfreaks.MarriageMaster.Bukkit.MarriageMaster;
 import com.gmail.nossr50.api.ChatAPI;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
-import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
-import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkTask;
+import net.doodcraft.oshcon.bukkit.doodcore.commands.BackCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
-import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.util.CommandCooldowns;
+import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
-import sx.blah.discord.handle.impl.obj.User;
-import sx.blah.discord.handle.obj.IUser;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerListener implements Listener {
@@ -31,127 +28,22 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        CorePlayer.createCorePlayer(player);
-        UUID uuid = player.getUniqueId();
-
-        CorePlayer cPlayer = CorePlayer.players.get(uuid);
-
-        CorePlayer.activeTimes.putIfAbsent(cPlayer.getUniqueId(), System.currentTimeMillis());
-
-        // AFK Task
-        int task = Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new AfkTask(event.getPlayer()), 0L, 10L);
-        if (!AfkHandler.tasks.containsKey(uuid)) {
-            AfkHandler.tasks.put(uuid, task);
-        } else {
-            Bukkit.getScheduler().cancelTask(AfkHandler.tasks.get(uuid));
-            AfkHandler.tasks.remove(uuid);
-            AfkHandler.tasks.put(uuid, task);
-        }
-
-        if (DiscordManager.toggled) {
-            if (!cPlayer.isIgnoringDiscord()) {
-                DiscordManager.sendGameLogin(player);
-            }
-        }
-
-        if (cPlayer.getDiscordUserId() == 0) {
-            DiscordManager.addReminderTask(cPlayer);
-        }
-
-        // Check total play time, give Veteran rank if over 86400000 millis.
-        if (cPlayer.getCurrentActiveTime() >= 30000L) {
-            // They need to be a Veteran now.
-            // Update their role on Discord. Let syncRank do the rest.
-            // This requires their account to be synced to discord. Check if they are ignoring reminders.
-            if (Arrays.toString(Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())).contains("Veteran")) {
-                StaticMethods.log(cPlayer.getName() + " is already a Veteran.");
-                return;
-            }
-
-            if (cPlayer.getDiscordUserId() != 0L) {
-                if (DiscordManager.client.getUserByID(cPlayer.getDiscordUserId()) != null) {
-                    IUser user = DiscordManager.client.getUserByID(cPlayer.getDiscordUserId());
-                    if (!user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Veteran")) {
-                        user.addRole(DiscordManager.client.getGuildByID(Settings.discordGuild).getRolesByName("Veterans").get(0));
-                    }
-                } else {
-                    StaticMethods.log(cPlayer.getName() + " was supposed to be ranked to Veteran, however their Discord ID is invalid.");
-                }
-            } else {
-                if (!cPlayer.isIgnoringDiscordReminder()) {
-                    cPlayer.getPlayer().sendMessage("§7You've earned the §2Veteran§7 role, however, you must sync your Discord account to get it.");
-                    cPlayer.getPlayer().sendMessage("§7Use §b/discord sync §7to learn how to sync your account.");
-                    cPlayer.getPlayer().sendMessage("§7If you do not want to see this message anymore, use §b/discord reminder");
-                }
-            }
-
-            // They were ignoring reminders, so we cannot give them the Veteran rank.
-        }
-
-        DiscordManager.syncRank(cPlayer);
-        DiscordManager.updateTopic();
-
-        // Extra values we don't really need for the cPlayer object, but should keep jic.
-        Configuration data = cPlayer.getDataFile();
-        data.set("LastJoined", System.currentTimeMillis());
-        data.save();
-
-        event.setJoinMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined Bending."));
+        PlayerMethods.loadCorePlayer(player);
+        event.setJoinMessage(null);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        UUID uuid = event.getPlayer().getUniqueId();
-        CorePlayer cPlayer = CorePlayer.players.get(uuid);
-
-        if (cPlayer.isCurrentlyAfk()) {
-            cPlayer.setAfkStatus(false, "Quitting");
-        }
-
-        cPlayer.setActiveTime(cPlayer.getCurrentActiveTime());
-        cPlayer.setAfkTime(cPlayer.getCurrentAfkTime());
-
-        if (CorePlayer.activeTimes.containsKey(cPlayer.getUniqueId())) {
-            CorePlayer.activeTimes.remove(cPlayer.getUniqueId());
-        }
-
-        if (CorePlayer.afkTimes.containsKey(cPlayer.getUniqueId())) {
-            CorePlayer.afkTimes.remove(cPlayer.getUniqueId());
-        }
-
-        if (AfkHandler.tasks.containsKey(uuid)) {
-            Bukkit.getScheduler().cancelTask(AfkHandler.tasks.get(uuid));
-            AfkHandler.lastAction.remove(uuid);
-            AfkHandler.lastLocation.remove(uuid);
-            AfkHandler.tasks.remove(uuid);
-        }
-
-        if (DiscordManager.toggled) {
-            if (!cPlayer.isIgnoringDiscord()) {
-                DiscordManager.sendGameQuit(player);
-            }
-        }
-
-        DiscordManager.updateTopic();
-
-        event.setQuitMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7quit."));
-
-        // Extra values we don't really need for the cPlayer object, but should keep jic.
-        Configuration data = cPlayer.getDataFile();
-        data.set("LastLocation", StaticMethods.getLocString(cPlayer.getPlayer().getLocation()));
-        data.set("LastQuit", System.currentTimeMillis());
-        data.save();
-
-        // FINISH HIM
-        CorePlayer.destroy(cPlayer);
+        event.setQuitMessage(null);
+        PlayerMethods.dumpCorePlayer(player);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        CorePlayer cPlayer = CorePlayer.players.get(uuid);
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(uuid);
         String message = event.getMessage();
 
         if (cPlayer != null) {
@@ -200,20 +92,64 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        if (event.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.COMMAND)) {
+            Block block = event.getTo().add(0, 1, 0).getBlock();
+            if (block != null) {
+                if (block.getType().isSolid() || block.getType().isOccluding()) {
+                    event.getPlayer().teleport(event.getTo().getWorld().getHighestBlockAt(event.getTo()).getLocation().add(0, 1, 0));
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onChange(SignChangeEvent event) {
+        if (!event.getPlayer().hasPermission("core.chat.colors")) {
+            return;
+        }
+
+        int n = 0;
+        while (n <= 3) {
+            event.setLine(n, StaticMethods.addColor(event.getLine(n)));
+            n++;
+        }
+    }
+
+    @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
 
         // I don't EVER want to see "magic" characters anywhere, ever again.
         event.setMessage(event.getMessage().replaceAll("&k", ""));
 
-        if (event.getMessage().split(" ")[0].equalsIgnoreCase("/afk")) {
+        String command = event.getMessage().split(" ")[0].toLowerCase().replaceAll("/", "");
+
+        // check cooldowns
+        if (!event.getPlayer().hasPermission("core.bypass.cooldowns")) {
+            if (CommandCooldowns.hasCooldown(event.getPlayer().getUniqueId(), command)) {
+                if (CommandCooldowns.getCooldown(event.getPlayer().getUniqueId(), command) > 0L) {
+                    event.getPlayer().sendMessage(StaticMethods.addColor("&cYou must wait to use this command again. &8[&e" + (Math.ceil(CommandCooldowns.getCooldown(event.getPlayer().getUniqueId(), command.replaceAll("/", "")) / 1000)) + "s&8]"));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
+        CommandCooldowns.removeCooldown(event.getPlayer().getUniqueId(), command);
+
+        if (command.equalsIgnoreCase("afk")) {
             return;
         }
 
-        if (event.getMessage().split(" ")[0].equalsIgnoreCase("/mytime")) {
+        if (command.equalsIgnoreCase("mytime")) {
             return;
         }
 
-        CorePlayer cPlayer = CorePlayer.players.get(event.getPlayer().getUniqueId());
+        if (command.equalsIgnoreCase("vanish")) {
+            return;
+        }
+
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(event.getPlayer().getUniqueId());
         if (cPlayer != null) {
             cPlayer.setAfkStatus(false, "Using commands/chatting");
         }
@@ -222,11 +158,74 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        CorePlayer cPlayer = CorePlayer.players.get(player.getUniqueId());
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
         if (cPlayer != null) {
             cPlayer.setAfkStatus(false, "");
         }
+    }
+
+    // Waiting for these people to click a pet.. *looks at watch*
+    public static HashMap<UUID, Long> waiting = new HashMap<>();
+
+    // Key UUID is sending their pet to Value UUID
+    public static HashMap<UUID, UUID> requesting = new HashMap<>();
+
+    @EventHandler
+    public void onInteract(PlayerInteractAtEntityEvent event) {
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        if (PlayerMethods.isOffHandClick(event)) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
+
+            @Override
+            public void run() {
+                if (waiting.containsKey(uuid)) {
+                    Entity entity = event.getRightClicked();
+                    if (entity instanceof Tameable) {
+                        Tameable tameable = (Tameable) entity;
+                        if (tameable.isTamed()) {
+                            AnimalTamer tamer = tameable.getOwner();
+                            if (uuid == tamer.getUniqueId()) {
+                                event.setCancelled(true);
+
+                                Player newOwner = Bukkit.getPlayer(requesting.get(uuid));
+                                if (entity instanceof Wolf) {
+                                    Wolf wolf = (Wolf) entity;
+                                    wolf.setSitting(false);
+                                    wolf.setOwner(newOwner);
+                                    wolf.teleport(newOwner);
+                                    newOwner.sendMessage("§7Someone sent you §b" + entity.getCustomName() + " §7the dog.");
+                                    player.sendMessage("§7You sent §b" + entity.getCustomName() + " §7the dog to " + newOwner.getName() + ".");
+                                    waiting.remove(uuid);
+                                    requesting.remove(uuid);
+                                }
+                                if (entity instanceof Ocelot) {
+                                    Ocelot o = (Ocelot) entity;
+                                    o.setSitting(false);
+                                    o.setOwner(newOwner);
+                                    o.teleport(newOwner);
+                                    newOwner.sendMessage("§7Someone sent you §b" + entity.getCustomName() + " §7the cat.");
+                                    player.sendMessage("§7You sent §b" + entity.getCustomName() + " §7the cat to " + newOwner.getName() + ".");
+                                    waiting.remove(uuid);
+                                    requesting.remove(uuid);
+                                }
+                                return;
+                            }
+                        }
+                    }
+
+                    player.sendMessage("§cThat entity cannot be given to another player.");
+                    waiting.remove(uuid);
+                    requesting.remove(uuid);
+                    CommandCooldowns.addCooldown(uuid, "givepet", 60000L);
+                }
+            }
+        }, 1L);
     }
 
     @EventHandler
@@ -236,6 +235,22 @@ public class PlayerListener implements Listener {
             return;
         }
 
+        BackCommand.addBackLocation(event.getEntity());
+
         DiscordManager.sendGameDeath(event.getEntity(), event.getDeathMessage());
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(event.getPlayer().getUniqueId());
+
+        for (String name : cPlayer.getHomes().keySet()) {
+            if (name.equalsIgnoreCase("home")) {
+                event.setRespawnLocation(StaticMethods.getPreciseLocationFromString(cPlayer.getHomes().get(name)));
+                return;
+            }
+        }
+
+        event.setRespawnLocation(Bukkit.getWorlds().get(0).getSpawnLocation());
     }
 }

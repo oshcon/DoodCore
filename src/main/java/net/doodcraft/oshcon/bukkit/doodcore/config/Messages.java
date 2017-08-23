@@ -7,6 +7,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 
 import java.io.File;
@@ -23,7 +24,7 @@ public class Messages {
         if (cPlayer != null) {
             if (getMessages().get(message) != null) {
                 for (String line : getMessages().getStringList(message)) {
-                    cPlayer.getPlayer().sendMessage(parse(cPlayer, line));
+                    cPlayer.getPlayer().sendMessage(StaticMethods.addColor(parse(cPlayer, line)));
                 }
             } else {
                 cPlayer.getPlayer().sendMessage("§cThere was an error getting message: §b" + message);
@@ -32,24 +33,56 @@ public class Messages {
         }
     }
 
+    public static String getHover(CorePlayer cPlayer) {
+        StringBuilder line = new StringBuilder("§fTime: §7<time>\n§fName: §7<name>\n§fGroup: §7<roleprefix><role>");
+
+        if (Compatibility.isHooked("ProjectKorra")) {
+            try {
+                List<Element> elements = BendingPlayer.getBendingPlayer(cPlayer.getPlayer()).getElements();
+                if (elements.size() >= 1) {
+                    line.append("\n§fElement: §7<element>");
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (DiscordManager.client != null) {
+            if (DiscordManager.client.isLoggedIn()) {
+                if (cPlayer.getDiscordId() != 0L) {
+                    if (DiscordManager.client.getUserByID(cPlayer.getDiscordId()) != null) {
+                        line.append("\n§fDiscord: §7<roleprefix>@<discordname>#<discorddiscriminator>");
+                    }
+                }
+            }
+        }
+
+        if (Compatibility.isHooked("Vault") && Vault.permission != null && Vault.permission.isEnabled()) {
+            if (Vault.permission != null && Vault.permission.isEnabled()) {
+                for (String group : Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())) {
+                    if (group.equalsIgnoreCase("Supporter")) {
+                        line.append("\n§6§lSUPPORTER");
+                    }
+                }
+            }
+        }
+
+        return line.toString();
+    }
+
     public static String parse(CorePlayer cPlayer, String line) {
         // NAME
         line = line.replaceAll("<uuid>", cPlayer.getUniqueId().toString());
         line = line.replaceAll("<name>", cPlayer.getName());
-        line = line.replaceAll("<nick>", cPlayer.getNickName());
+        line = line.replaceAll("<nick>", cPlayer.getNick());
 
         // TIME
-        line = line.replaceAll("<time>", StaticMethods.getTimeStamp());
+        line = line.replaceAll("<time>", StaticMethods.getSimpleTimeStamp());
         line = line.replaceAll("<totalactive>", String.valueOf(TimeUnit.MILLISECONDS.toMinutes(cPlayer.getCurrentActiveTime())));
         line = line.replaceAll("<totalafk>", String.valueOf(TimeUnit.MILLISECONDS.toMinutes(cPlayer.getCurrentAfkTime())));
 
         // VAULT
-        if (Compatibility.isHooked("Vault")) {
-            line = line.replaceAll("<role>", Vault.chat.getPrimaryGroup(null, cPlayer.getPlayer()));
-            line = line.replaceAll("<roleprefix>", Vault.chat.getPlayerPrefix(null, cPlayer.getPlayer()));
-        } else {
-            line = nullVault(line);
-        }
+        line = line.replaceAll("<role>", PlayerMethods.getPrimaryGroup(cPlayer.getPlayer()));
+        line = line.replaceAll("<roleprefix>", PlayerMethods.getPlayerPrefix(cPlayer.getPlayer()));
 
         // TOWNY
         if (Compatibility.isHooked("Towny")) {
@@ -79,12 +112,12 @@ public class Messages {
         // DISCORD
         if (DiscordManager.client != null) {
             if (DiscordManager.client.isLoggedIn()) {
-                line = line.replaceAll("<discordid>", cPlayer.getDiscordUserId().toString());
-                if (cPlayer.getDiscordUserId() != 0) {
+                line = line.replaceAll("<discordid>", cPlayer.getDiscordId().toString());
+                if (cPlayer.getDiscordId() != 0L) {
                     try {
-                        line = line.replaceAll("<discordname>", DiscordManager.client.getUserByID(cPlayer.getDiscordUserId()).getName());
-                        line = line.replaceAll("<discordnick>", DiscordManager.client.getUserByID(cPlayer.getDiscordUserId()).getDisplayName(DiscordManager.client.getGuildByID(Settings.discordGuild)));
-                        line = line.replaceAll("<discorddiscriminator>", DiscordManager.client.getUserByID(cPlayer.getDiscordUserId()).getDiscriminator());
+                        line = line.replaceAll("<discordname>", DiscordManager.client.getUserByID(cPlayer.getDiscordId()).getName());
+                        line = line.replaceAll("<discordnick>", DiscordManager.client.getUserByID(cPlayer.getDiscordId()).getDisplayName(DiscordManager.client.getGuildByID(Settings.discordGuild)));
+                        line = line.replaceAll("<discorddiscriminator>", DiscordManager.client.getUserByID(cPlayer.getDiscordId()).getDiscriminator());
                     } catch (Exception ex) {
                         StaticMethods.log("Error parsing Discord information for cPlayer: " + ex.getLocalizedMessage());
                         line = line.replaceAll("<discordname>", "N/A");
@@ -101,12 +134,6 @@ public class Messages {
             line = nullDiscord(line);
         }
 
-        return line;
-    }
-
-    public static String nullVault(String line) {
-        line = line.replaceAll("<role>", "N/A");
-        line = line.replaceAll("<roleprefix>", "N/A");
         return line;
     }
 

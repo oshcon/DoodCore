@@ -13,21 +13,72 @@ import org.bukkit.entity.Monster;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StaticMethods {
 
-    private static SimpleDateFormat format = new SimpleDateFormat("hh:mm");
+    private static SimpleDateFormat simpleTimeStamp = new SimpleDateFormat("hh:mm");
 
-    public static String getTimeStamp() {
-        return format.format(new Date());
+    public static String getSimpleTimeStamp() {
+        return simpleTimeStamp.format(new Date());
+    }
+
+    public static String getTimeStamp(Long time) {
+        Timestamp stamp = new Timestamp(time);
+        return stamp.toString();
+    }
+
+    public static String getDurationBreakdown(long millis) {
+        if (millis < 0) {
+            throw new IllegalArgumentException("Duration must be greater than zero!");
+        }
+
+        long days = TimeUnit.MILLISECONDS.toDays(millis);
+        millis -= TimeUnit.DAYS.toMillis(days);
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        millis -= TimeUnit.HOURS.toMillis(hours);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+        millis -= TimeUnit.MINUTES.toMillis(minutes);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+
+        StringBuilder sb = new StringBuilder(64);
+        sb.append(days);
+        sb.append(" Days ");
+        sb.append(hours);
+        sb.append(" Hours ");
+        sb.append(minutes);
+        sb.append(" Minutes ");
+        sb.append(seconds);
+        sb.append(" Seconds");
+
+        return (sb.toString());
     }
 
     public static String getLocString(Location loc) {
         return loc.getWorld().getName() + ", " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ();
+    }
+
+    public static String getRoundedLocString(Location loc) {
+        return loc.getWorld().getName() + ", " + (int) loc.getX() + ", " + (int) loc.getY() + ", " + (int) loc.getZ();
+    }
+
+    public static String getPreciseLocString(Location loc) {
+        return loc.getWorld().getName() + ", " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ() + ", " + loc.getYaw() + ", " + loc.getPitch();
+    }
+
+    public static Location getLocationFromString(String string) {
+        String[] args = string.split(", ");
+        return new Location(Bukkit.getWorld(args[0]), Double.valueOf(args[1]), Double.valueOf(args[2]), Double.valueOf(args[3]));
+    }
+
+    public static Location getPreciseLocationFromString(String string) {
+        String[] args = string.split(", ");
+        return new Location(Bukkit.getWorld(args[0]), Double.valueOf(args[1]), Double.valueOf(args[2]), Double.valueOf(args[3]), Float.valueOf(args[4]), Float.valueOf(args[5]));
     }
 
     public static int purgeMonsters(World world) {

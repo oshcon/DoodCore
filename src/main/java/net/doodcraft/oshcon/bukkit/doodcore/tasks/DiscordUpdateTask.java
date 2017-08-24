@@ -1,8 +1,9 @@
 package net.doodcraft.oshcon.bukkit.doodcore.tasks;
 
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import org.bukkit.scheduler.BukkitRunnable;
 
-public class DiscordUpdateTask implements Runnable {
+public class DiscordUpdateTask extends BukkitRunnable {
     @Override
     public void run() {
         if (DiscordManager.client != null) {

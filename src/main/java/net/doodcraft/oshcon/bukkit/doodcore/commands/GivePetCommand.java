@@ -2,7 +2,6 @@ package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.GivePetTimeoutTask;
-import net.doodcraft.oshcon.bukkit.doodcore.util.CommandCooldowns;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -38,7 +37,6 @@ public class GivePetCommand implements Listener, CommandExecutor {
                 PlayerListener.requesting.put(((Player) sender).getUniqueId(), Bukkit.getPlayer(args[0]).getUniqueId());
                 PlayerListener.waiting.put(((Player) sender).getUniqueId(), System.currentTimeMillis());
                 new GivePetTimeoutTask(player);
-                CommandCooldowns.addCooldown(((Player) sender).getUniqueId(), "givepet", 30000L);
                 return true;
             } else {
                 sender.sendMessage("Console can't use this command.");

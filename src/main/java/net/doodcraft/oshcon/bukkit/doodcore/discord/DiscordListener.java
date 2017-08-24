@@ -1,9 +1,11 @@
 package net.doodcraft.oshcon.bukkit.doodcore.discord;
 
+import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.DiscordCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -102,7 +104,6 @@ public class DiscordListener {
 
     @EventSubscriber
     public void onReady(ReadyEvent event) {
-        DiscordManager.client.changePlayingText("IP: mc.doodcraft.net");
-        DiscordManager.updateTopic();
+        new DiscordUpdateTask().runTaskAsynchronously(DoodCorePlugin.plugin);
     }
 }

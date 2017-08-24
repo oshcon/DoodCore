@@ -6,8 +6,8 @@ import de.slikey.effectlib.util.DynamicLocation;
 import de.slikey.effectlib.util.ParticleEffect;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.BackCommand;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.CommandCooldowns;
-import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -102,31 +102,33 @@ public class WarmupTeleportTask extends BukkitRunnable {
             }
         }
 
+        if (this.command.equalsIgnoreCase("spawn")) {
+            CommandCooldowns.addCooldown(player.getUniqueId(), "spawn", 60000L);
+        }
+
         if (this.command.equalsIgnoreCase("wild")) {
             CommandCooldowns.addCooldown(player.getUniqueId(), "wild", 180000L);
         }
     }
 
     public static void playWarmupEffects(Player player, int length) {
-
-        if (PlayerMethods.isVanished(player)) {
-            return;
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
+        if (!cPlayer.isVanished()) {
+            Location loc = player.getLocation();
+            SphereEffect loading = new SphereEffect(DoodCorePlugin.effectManager);
+            loading.duration = length;
+            loading.autoOrient = true;
+            loading.iterations = 10;
+            loading.radius = 0.25;
+            loading.radiusIncrease = 0.0013;
+            loading.particle = ParticleEffect.PORTAL;
+            loading.particles = 3;
+            loading.setLocation(loc);
+            loading.setDynamicTarget(new DynamicLocation(loc, player));
+            loading.disappearWithTargetEntity = true;
+            loading.visibleRange = 64F;
+            loading.start();
         }
-
-        Location loc = player.getLocation();
-        SphereEffect loading = new SphereEffect(DoodCorePlugin.effectManager);
-        loading.duration = length;
-        loading.autoOrient = true;
-        loading.iterations = 10;
-        loading.radius = 0.25;
-        loading.radiusIncrease = 0.0013;
-        loading.particle = ParticleEffect.PORTAL;
-        loading.particles = 3;
-        loading.setLocation(loc);
-        loading.setDynamicTarget(new DynamicLocation(loc, player));
-        loading.disappearWithTargetEntity = true;
-        loading.visibleRange = 64F;
-        loading.start();
     }
 
     public static void playTeleportEffects(Player player, Location from, Location to) {
@@ -135,29 +137,28 @@ public class WarmupTeleportTask extends BukkitRunnable {
         player.setNoDamageTicks(200);
         player.setRemainingAir(20);
 
-        if (PlayerMethods.isVanished(player)) {
-            return;
+        CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
+        if (!cPlayer.isVanished()) {
+            // FROM
+            WarpEffect warpEffectFrom = new WarpEffect(DoodCorePlugin.effectManager);
+            warpEffectFrom.particle = ParticleEffect.SPELL_WITCH;
+            warpEffectFrom.radius = 0.72F;
+            warpEffectFrom.particles = 8;
+            warpEffectFrom.rings = 1;
+            warpEffectFrom.setLocation(from.add(0, 1, 0));
+            warpEffectFrom.start();
+            player.getLocation().getWorld().playSound(from, Sound.ENTITY_ENDERMEN_TELEPORT, 1F, 1.35F);
+
+            // TO
+            WarpEffect warpEffectTo = new WarpEffect(DoodCorePlugin.effectManager);
+            warpEffectTo.particle = ParticleEffect.SPELL_WITCH;
+            warpEffectTo.radius = 0.72F;
+            warpEffectTo.particles = 8;
+            warpEffectTo.rings = 1;
+            warpEffectTo.setLocation(to.add(0.0, 1, 0.0));
+            warpEffectTo.start();
+            player.playEffect(to, Effect.ENDER_SIGNAL, null);
+            to.getWorld().playSound(to, Sound.ENTITY_GHAST_SHOOT, 2F, 1.5F);
         }
-
-        // FROM
-        WarpEffect warpEffectFrom = new WarpEffect(DoodCorePlugin.effectManager);
-        warpEffectFrom.particle = ParticleEffect.SPELL_WITCH;
-        warpEffectFrom.radius = 0.72F;
-        warpEffectFrom.particles = 8;
-        warpEffectFrom.rings = 1;
-        warpEffectFrom.setLocation(from.add(0, 1, 0));
-        warpEffectFrom.start();
-        player.getLocation().getWorld().playSound(from, Sound.ENTITY_ENDERMEN_TELEPORT, 1F, 1.35F);
-
-        // TO
-        WarpEffect warpEffectTo = new WarpEffect(DoodCorePlugin.effectManager);
-        warpEffectTo.particle = ParticleEffect.SPELL_WITCH;
-        warpEffectTo.radius = 0.72F;
-        warpEffectTo.particles = 8;
-        warpEffectTo.rings = 1;
-        warpEffectTo.setLocation(to.add(0.0, 1, 0.0));
-        warpEffectTo.start();
-        player.playEffect(to, Effect.ENDER_SIGNAL, null);
-        to.getWorld().playSound(to, Sound.ENTITY_GHAST_SHOOT, 2F, 1.5F);
     }
 }

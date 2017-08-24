@@ -11,6 +11,8 @@ public class Settings {
     public static Long discordChannel;
     public static Boolean purgeItems;
     public static Integer wildRadius;
+    public static Long pvpProtection = 21600L;
+    public static Long veteranTime = 43200L;
 
     public static void addConfigDefaults() {
         discordToken = "bot-token";

@@ -9,6 +9,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.entitymanagement.EntityManagement;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.VotifierListener;
+import net.doodcraft.oshcon.bukkit.doodcore.pvpmanager.PvPLogger;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
@@ -40,6 +41,7 @@ public class DoodCorePlugin extends JavaPlugin {
         PlayerMethods.loadAllCorePlayers();
         AfkHandler.addAllPlayers();
         BackCommand.loadDeathLocations();
+        PvPLogger.setupBlockedCommands();
 
         try {
             DiscordManager.setupDiscord(Settings.discordToken);
@@ -98,6 +100,7 @@ public class DoodCorePlugin extends JavaPlugin {
     public void registerListeners() {
         registerEvents(plugin, new PlayerListener());
         registerEvents(plugin, new GivePetCommand());
+        registerEvents(plugin, new PvPLogger());
 
         if (Compatibility.isHooked("Votifier")) {
             registerEvents(plugin, new VotifierListener());

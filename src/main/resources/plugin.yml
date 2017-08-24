@@ -145,3 +145,10 @@ permissions:
     default: OP
   core.command.tpdeny:
     description: Allows players to use /tpdeny
+    default: OP
+  core.command.mytime.others:
+    description: View other players mytime report
+    default: OP
+  core.command.vote.others:
+    description: View other players vote report
+    default: OP

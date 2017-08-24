@@ -56,7 +56,7 @@ public class TpacceptCommand implements CommandExecutor {
                             if (Bukkit.getPlayer(name) != null) {
                                 if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
-                                    requester.sendMessage("§7" + player.getName() + " accepted your tpa request.");
+                                    requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport you...");
                                     new WarmupTeleportTask(requester, player.getLocation(), player, "§7Teleported you to " + player.getName() + ".", "tpaccept", 5000);
                                     TpaCommand.requesting.remove(u);
                                     return true;
@@ -67,7 +67,7 @@ public class TpacceptCommand implements CommandExecutor {
                             if (Bukkit.getPlayer(name) != null) {
                                 if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
-                                    requester.sendMessage("§7" + player.getName() + " accepted your tpahere request.");
+                                    requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport them...");
                                     new WarmupTeleportTask(player, requester.getLocation(), requester, "§7Teleported you to " + requester.getName() + ".", "tpaccept", 5000);
                                     TpahereCommand.requesting.remove(u);
                                     return true;
@@ -122,7 +122,8 @@ public class TpacceptCommand implements CommandExecutor {
                     }
 
                     Player requester = Bukkit.getPlayer(requestingTpa.get(0));
-                    new WarmupTeleportTask(requester, player.getLocation(), player, "§7Teleported you to " + player.getName() + ".",  "tpaccept", 5000);
+                    requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport you...");
+                    new WarmupTeleportTask(requester, player.getLocation(), player, "§7Teleported you to " + player.getName() + ".", "tpaccept", 5000);
                     TpaCommand.requesting.remove(requestingTpa.get(0));
                     return true;
                 }
@@ -138,6 +139,7 @@ public class TpacceptCommand implements CommandExecutor {
                     }
 
                     Player requester = Bukkit.getPlayer(requestingTpahere.get(0));
+                    requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport them...");
                     new WarmupTeleportTask(player, requester.getLocation(), requester, "§7Teleported you to " + requester.getName() + ".", "tpaccept", 5000);
                     TpahereCommand.requesting.remove(requestingTpahere.get(0));
                     return true;

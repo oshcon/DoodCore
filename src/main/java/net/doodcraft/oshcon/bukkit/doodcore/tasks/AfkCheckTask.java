@@ -36,9 +36,9 @@ public class AfkCheckTask implements Runnable {
                     cPlayer.setAfkStatus(true, "Idling§r");
                     return;
                 }
-                if ((System.currentTimeMillis() - AfkHandler.lastAction.get(uuid)) >= (long) (600 * 1000)) {
+                if ((System.currentTimeMillis() - AfkHandler.lastAction.get(uuid)) >= (long) (900 * 1000)) {
                     if (!cPlayer.getPlayer().hasPermission("core.bypass.afkkick")) {
-                        cPlayer.getPlayer().kickPlayer("§bYou were kicked for being AFK too long.");
+                        cPlayer.getPlayer().kickPlayer("§bYou were kicked for AFK.");
                     }
                 }
             }

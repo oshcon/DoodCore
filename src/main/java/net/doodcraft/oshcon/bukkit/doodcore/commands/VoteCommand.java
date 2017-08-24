@@ -16,6 +16,9 @@ public class VoteCommand implements CommandExecutor {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
 
+                if (args.length > 1) {
+
+                }
                 CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
                 player.sendMessage("§7Your Votes: §b" + cPlayer.getTotalVotes());
                 if (cPlayer.getLastVote() > 0L) {

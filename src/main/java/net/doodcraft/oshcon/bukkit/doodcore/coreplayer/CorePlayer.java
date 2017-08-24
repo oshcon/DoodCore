@@ -10,12 +10,15 @@ import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.AfkCheckTask;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.WarmupTeleportTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.io.File;
@@ -43,7 +46,6 @@ public class CorePlayer {
     public static CorePlayer createCorePlayer(Player player) {
         CorePlayer cPlayer = new CorePlayer(player.getUniqueId());
 
-        // todo: load data
         cPlayer.loadData();
 
         // Alerts
@@ -72,7 +74,7 @@ public class CorePlayer {
         // Other Stuff
         CorePlayer.activeTimes.putIfAbsent(cPlayer.getUniqueId(), System.currentTimeMillis());
         DiscordManager.syncRank(cPlayer);
-        DiscordManager.updateTopic();
+        new DiscordUpdateTask().runTaskAsynchronously(DoodCorePlugin.plugin);
 
         cPlayer.setLastJoined(System.currentTimeMillis());
 
@@ -102,6 +104,7 @@ public class CorePlayer {
     private int votes;
     private Long lastVote;
     private Boolean thankedForOfflineVote;
+    private Boolean warnedPVPExpiration;
 
     public CorePlayer(UUID uuid) {
         // Default values. These can/will be updated after creating the initial CorePlayer object.
@@ -127,6 +130,7 @@ public class CorePlayer {
         this.votes = 0;
         this.lastVote = 0L;
         this.thankedForOfflineVote = true;
+        this.warnedPVPExpiration = false;
 
         // Add CorePlayer to Map
         reload();
@@ -167,6 +171,7 @@ public class CorePlayer {
         data.set("Voting.Total", getTotalVotes());
         data.set("Voting.LastVote", getLastVote());
         data.set("Voting.Thanked", getThankedForOfflineVote());
+        data.set("Warned.PvPProtectionExpired", getWarnedPVPExpiration());
 
         if (data.get("Homes") != null) {
             data.remove("Homes");
@@ -374,11 +379,6 @@ public class CorePlayer {
         return homes;
     }
 
-    public void setHomes(Map<String, String> map) {
-        this.homes = map;
-        reload();
-    }
-
     // LAST JOINED
     public Long getLastJoined() {
         return this.lastJoined;
@@ -444,6 +444,16 @@ public class CorePlayer {
         reload();
     }
 
+    // WARNED ABOUT PVP PROTECTION EXPIRING
+    public Boolean getWarnedPVPExpiration() {
+        return this.warnedPVPExpiration;
+    }
+
+    public void setWarnedPVPExpiration(Boolean bool) {
+        this.warnedPVPExpiration = bool;
+        reload();
+    }
+
     // BUKKIT/SPIGOT/ETC
     public Player getPlayer() {
         return Bukkit.getPlayer(this.uuid);
@@ -458,6 +468,22 @@ public class CorePlayer {
 
         // No elements, be sure to do a null/empty check.
         return new ArrayList<>();
+    }
+
+    public boolean isVanished() {
+        if (getPlayer() == null) {
+            return false;
+        }
+
+        if (getPlayer().getGameMode().equals(GameMode.SPECTATOR)) {
+            return true;
+        }
+
+        for (MetadataValue meta : getPlayer().getMetadata("vanished")) {
+            if (meta.asBoolean()) return true;
+        }
+
+        return false;
     }
 
     // UTIL
@@ -483,6 +509,7 @@ public class CorePlayer {
             setTotalVotes(data.getInteger("Voting.Total"));
             setLastVote(Long.valueOf(data.getString("Voting.LastVote")));
             setThankedForOfflineVote(data.getBoolean("Voting.Thanked"));
+            setWarnedPVPExpiration(data.getBoolean("Warned.PvPProtectionExpired"));
             if (data.get("Homes") != null) {
                 for (String id : data.getYaml().getConfigurationSection("Homes").getKeys(false)) {
                     getHomes().put(id, data.getString("Homes." + id));
@@ -520,10 +547,6 @@ public class CorePlayer {
     // Only invoke if the player is online and is leaving.
     public void destroy() {
         UUID uuid = getUniqueId();
-
-        if (isCurrentlyAfk()) {
-            setAfkStatus(false, "Quitting");
-        }
 
         if (DiscordManager.toggled) {
             if (!isIgnoringDiscord()) {

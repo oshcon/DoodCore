@@ -15,8 +15,6 @@ import java.util.UUID;
 
 public class SeenCommand implements CommandExecutor {
 
-    // FIXME: this is broken and does not work
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (label.equalsIgnoreCase("seen")) {

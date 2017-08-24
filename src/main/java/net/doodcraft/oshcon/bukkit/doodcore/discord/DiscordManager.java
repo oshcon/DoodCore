@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DiscordManager {
 
@@ -63,7 +62,7 @@ public class DiscordManager {
                 client.login();
             }
 
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new DiscordUpdateTask(), 0L, 30 * 20);
+            new DiscordUpdateTask().runTaskTimerAsynchronously(DoodCorePlugin.plugin, 1L, 600);
         }
     }
 
@@ -79,8 +78,7 @@ public class DiscordManager {
         if (client != null) {
             if (client.isLoggedIn()) {
                 int game = DoodCorePlugin.random.nextInt(games.size());
-                ConcurrentLinkedQueue<Player> players = new ConcurrentLinkedQueue<>(Bukkit.getOnlinePlayers());
-                DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(players.size())));
+                DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(CorePlayer.getPlayers().size())));
             }
         }
     }
@@ -386,7 +384,7 @@ public class DiscordManager {
             return "§2";
         }
 
-        return "§a";
+        return "§e";
     }
 
     public static String getMatchingGameRank(IGuild guild, IUser user, CorePlayer cPlayer) {
@@ -440,10 +438,8 @@ public class DiscordManager {
     public static void awardPlayer(CorePlayer cPlayer) {
         if (!cPlayer.hasSyncedBefore()) {
             try {
-                if (Compatibility.isHooked("Vault") && Vault.economy == null && Vault.economy.isEnabled()) {
-                    Vault.economy.depositPlayer(cPlayer.getPlayer(), 500);
-                    cPlayer.getPlayer().sendMessage("§7You've earned §6§l$500 §7for syncing your accounts!");
-                }
+                Vault.economy.depositPlayer(cPlayer.getPlayer(), 500);
+                cPlayer.getPlayer().sendMessage("§7You've earned §6§l$500 §7for syncing your accounts!");
             } catch (Exception ex) {
                 cPlayer.getPlayer().sendMessage("§7There was an error giving your sync reward. Notify a staff member.");
                 StaticMethods.log("There was an error giving a sync reward ($500) to " + cPlayer.getName());
@@ -463,7 +459,13 @@ public class DiscordManager {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group set " + rank);
                 if (user.getRolesForGuild(DiscordManager.client.getGuildByID(Settings.discordGuild)).toString().contains("Supporter")) {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
-                    cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
+
+                    Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
+                        @Override
+                        public void run() {
+                            cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
+                        }
+                    }, 20L);
                 }
             }
         }
@@ -473,7 +475,7 @@ public class DiscordManager {
     }
 
     public static void autoRankVeteran(CorePlayer cPlayer) {
-        if (cPlayer.getCurrentActiveTime() >= 3600 * 1000) {
+        if (cPlayer.getCurrentActiveTime() >= Settings.veteranTime * 1000) {
             // They need to be a Veteran now.
             // Update their role on Discord. Let syncRank do the rest.
             // This requires their account to be synced to discord. Check if they are ignoring reminders.
@@ -482,7 +484,6 @@ public class DiscordManager {
             }
 
             if (Arrays.toString(Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())).contains("Veteran")) {
-                StaticMethods.log(cPlayer.getName() + " is already a Veteran.");
                 return;
             }
 

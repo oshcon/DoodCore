@@ -3,9 +3,8 @@ package net.doodcraft.oshcon.bukkit.doodcore.util;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
-import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -13,7 +12,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.metadata.MetadataValue;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -28,18 +26,6 @@ public class PlayerMethods {
             e.printStackTrace();
             return null;
         }
-    }
-
-    public static boolean isVanished(Player player) {
-        if (player == null) {
-            return false;
-        }
-
-        for (MetadataValue meta : player.getMetadata("vanished")) {
-            if (meta.asBoolean()) return true;
-        }
-
-        return false;
     }
 
     public static boolean isOffHandClick(PlayerInteractEvent event) {
@@ -134,11 +120,10 @@ public class PlayerMethods {
         UUID uuid = player.getUniqueId();
         CorePlayer cPlayer = CorePlayer.getPlayers().get(uuid);
 
-        DiscordManager.updateTopic();
+        new DiscordUpdateTask().runTaskAsynchronously(DoodCorePlugin.plugin);
 
         cPlayer.setLastQuit(System.currentTimeMillis());
         cPlayer.setLastLocation(StaticMethods.getLocString(cPlayer.getPlayer().getLocation()));
-        Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7quit."));
         cPlayer.destroy();
     }
 

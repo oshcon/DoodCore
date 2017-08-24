@@ -14,13 +14,14 @@ import java.io.File;
 import java.util.UUID;
 
 public class VotifierListener implements Listener {
+
     @EventHandler
     public void onVote(VotifierEvent event) {
         Vote vote = event.getVote();
         UUID uuid = PlayerMethods.getCrackedUUID(vote.getUsername());
 
         if (Bukkit.getPlayer(uuid) != null) {
-            // They are online, message them and shit.
+            // They are online, message them.
             CorePlayer cPlayer = CorePlayer.getPlayers().get(uuid);
             cPlayer.getPlayer().sendMessage("§aThank you for voting at " + vote.getServiceName() + ", " + cPlayer.getName() + "!");
 
@@ -37,6 +38,10 @@ public class VotifierListener implements Listener {
         } else {
             // They are not online, modify data directly.
             Configuration data = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + (uuid + ".yml"));
+            // If the UUID/name needs to be added, it's likely the player made a typo in their name.
+            // This can be solved more easily when I write my own vote listener in node.js
+            data.add("UUID", uuid);
+            data.add("UUID", vote.getUsername());
             data.set("Voting.LastVote", System.currentTimeMillis());
             data.set("Voting.Thanked", false);
             data.set("Voting.Total", data.getInteger("Voting.Total") + 1);

@@ -31,7 +31,7 @@ public class VoteCommand implements CommandExecutor {
                 } else {
                     player.sendMessage("§7Voted in the last 24 hours? §8[§cNO§8]");
                 }
-                player.sendMessage("§7Voting unlocks §b/home§7, §b/back§7, §b/tpa§7, and §b/tpahere");
+                player.sendMessage("§7Voting unlocks §b/home§7, §b/back§7, §b/tpa§7, §b/tpahere§7, and §b/track");
                 player.sendMessage("§7You can vote at any of the following sites:");
                 Messages.sendMultiLine(cPlayer, "VoteSites");
                 return true;

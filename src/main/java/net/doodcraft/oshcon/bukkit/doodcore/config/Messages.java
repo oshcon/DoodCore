@@ -3,6 +3,7 @@ package net.doodcraft.oshcon.bukkit.doodcore.config;
 import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
@@ -56,13 +57,10 @@ public class Messages {
             }
         }
 
-        if (Compatibility.isHooked("Vault") && Vault.permission != null && Vault.permission.isEnabled()) {
-            if (Vault.permission != null && Vault.permission.isEnabled()) {
-                for (String group : Vault.permission.getPlayerGroups(null, cPlayer.getPlayer())) {
-                    if (group.equalsIgnoreCase("Supporter")) {
-                        line.append("\n§6§lSUPPORTER");
-                    }
-                }
+        if (cPlayer.getBadges().size() > 0) {
+            line.append("\n§fBadges:");
+            for (Badge b : cPlayer.getBadges()) {
+                line.append("\n§7  - ").append(b.getFriendlyName());
             }
         }
 
@@ -83,13 +81,6 @@ public class Messages {
         // VAULT
         line = line.replaceAll("<role>", PlayerMethods.getPrimaryGroup(cPlayer.getPlayer()));
         line = line.replaceAll("<roleprefix>", PlayerMethods.getPlayerPrefix(cPlayer.getPlayer()));
-
-        // TOWNY
-        if (Compatibility.isHooked("Towny")) {
-            // TODO
-        } else {
-            line = nullTowny(line);
-        }
 
         // PROJECTKORRA
         if (Compatibility.isHooked("ProjectKorra")) {
@@ -134,10 +125,6 @@ public class Messages {
             line = nullDiscord(line);
         }
 
-        return line;
-    }
-
-    public static String nullTowny(String line) {
         return line;
     }
 

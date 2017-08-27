@@ -1,7 +1,7 @@
 name: ${project.artifactId}
 version: ${project.version}
 authors: [oshcon]
-softdepend: [Votifier, Vault, Essentials, SuperVanish, PremiumVanish, ProjectKorra, Towny, TownyChat, MarriageMaster, mcMMO]
+softdepend: [Votifier, Vault, Essentials, SuperVanish, PremiumVanish, ProjectKorra, MarriageMaster, mcMMO]
 website: http://doodcraft.net/
 main: net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin
 
@@ -54,6 +54,10 @@ commands:
     description: Accept someones tp request
   tpdeny:
     description: Deny someones tp request
+  track:
+    description: Point your compass to a players last known location
+  badges:
+    description: Display badge information and manage badges
 
 permissions:
   core.command.core:
@@ -151,4 +155,13 @@ permissions:
     default: OP
   core.command.vote.others:
     description: View other players vote report
+    default: OP
+  core.command.track:
+    description: Track a player via a compass
+    default: OP
+  core.command.badge:
+    description: Display player badge information
+    default: true
+  core.command.badge.admin:
+    description: Manage player badges
     default: OP

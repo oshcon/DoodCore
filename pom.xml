@@ -208,14 +208,6 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/MarriageMaster.jar</systemPath>
         </dependency>
-        <!-- TownyChat -->
-        <dependency>
-            <groupId>com.palmergames</groupId>
-            <artifactId>TownyChat</artifactId>
-            <version>LATEST</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/TownyChat.jar</systemPath>
-        </dependency>
         <!-- NuVotifier -->
         <dependency>
             <groupId>com.vexsoftware</groupId>

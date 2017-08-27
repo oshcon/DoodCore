@@ -77,28 +77,28 @@ public class DiscordListener {
         }
 
         if (event.getChannel().getLongID() == Settings.discordChannel) {
-            if (event.getMessage().getContent().startsWith(".help")) {
+            if (event.getMessage().getContent().startsWith("!help")) {
                 DiscordManager.sendGameHelp();
                 return;
             }
 
-            if (event.getMessage().getContent().startsWith(".who")) {
+            if (event.getMessage().getContent().startsWith("!who")) {
                 DiscordManager.sendGameWho();
                 return;
             }
 
-            if (event.getMessage().getContent().startsWith(".sync")) {
+            if (event.getMessage().getContent().startsWith("!sync")) {
                 DiscordManager.sendSync(event.getAuthor());
                 return;
             }
 
-            if (event.getMessage().getContent().startsWith(".nuke")) {
+            if (event.getMessage().getContent().startsWith("!nuke")) {
                 DiscordManager.sendNukeRoll(event.getAuthor());
                 return;
             }
 
             StaticMethods.log("[DISCORD] " + event.getAuthor().getName() + ": " + event.getMessage().getContent());
-            DiscordManager.broadcastToMinecraft("§d[Discord]§8§r " + DiscordManager.getDiscordRankPrefix(event.getGuild(), event.getAuthor()) + event.getAuthor().getName() + "§8: §7" + event.getMessage());
+            DiscordManager.broadcastToMinecraft("§8[§dDiscord§8]§r " + DiscordManager.getDiscordRankPrefix(event.getGuild(), event.getAuthor()) + event.getAuthor().getName() + "§8: §7" + event.getMessage());
         }
     }
 

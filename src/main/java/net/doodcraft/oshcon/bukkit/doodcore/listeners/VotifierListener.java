@@ -7,6 +7,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -18,7 +19,16 @@ public class VotifierListener implements Listener {
     @EventHandler
     public void onVote(VotifierEvent event) {
         Vote vote = event.getVote();
-        UUID uuid = PlayerMethods.getCrackedUUID(vote.getUsername());
+        UUID uuid;
+
+        uuid = PlayerMethods.getCrackedUUID(vote.getUsername());
+
+        // Check each online player's name for case insensitivity.
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p.getName().toLowerCase().equals(vote.getUsername().toLowerCase())) {
+                uuid = PlayerMethods.getCrackedUUID(p.getName());
+            }
+        }
 
         if (Bukkit.getPlayer(uuid) != null) {
             // They are online, message them.

@@ -38,7 +38,7 @@ public class MyTimeCommand implements CommandExecutor {
                             if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
                                 player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
-                                player.sendMessage("§8:: §7Veteran Rankup: §8[§aRANKED§8]");
+                                player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                             }
                             if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
                                 player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
@@ -60,7 +60,7 @@ public class MyTimeCommand implements CommandExecutor {
                                 if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.veteranTime * 1000)) {
                                     player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
                                 } else {
-                                    player.sendMessage("§8:: §7Veteran Rankup: §8[§aRANKED§8]");
+                                    player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                                 }
                                 if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.pvpProtection * 1000)) {
                                     player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
@@ -88,7 +88,7 @@ public class MyTimeCommand implements CommandExecutor {
                     if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
                         player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                     } else {
-                        player.sendMessage("§8:: §7Veteran Rankup: §8[§aRANKED§8]");
+                        player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                     }
                     if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
                         player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
@@ -110,7 +110,7 @@ public class MyTimeCommand implements CommandExecutor {
                         if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
                             sender.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                         } else {
-                            sender.sendMessage("§8:: §7Veteran Rankup: §8[§aRANKED§8]");
+                            sender.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                         }
                         if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
                             sender.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
@@ -132,7 +132,7 @@ public class MyTimeCommand implements CommandExecutor {
                             if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.veteranTime * 1000)) {
                                 sender.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
                             } else {
-                                sender.sendMessage("§8:: §7Veteran Rankup: §8[§aRANKED§8]");
+                                sender.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                             }
                             if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.pvpProtection * 1000)) {
                                 sender.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));

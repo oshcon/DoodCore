@@ -5,6 +5,8 @@ import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
+import net.minecraft.server.v1_12_R1.DedicatedServer;
+import net.minecraft.server.v1_12_R1.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -18,6 +20,10 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class PlayerMethods {
+
+    // TODO: Eventually create a method to migrate from a cracked to premium.
+    // IE: Determine if the logged in player has paid for Minecraft via some external api/process, then use that UUID instead of the cracked variation.
+    // Could possibly use FastLogin's API or code.
 
     public static UUID getCrackedUUID(String player) {
         try {
@@ -89,7 +95,7 @@ public class PlayerMethods {
         }
 
         if (sendError) {
-            player.sendMessage("Unknown command. Type \"help\" for help.");
+            player.sendMessage("§cNo permission.");
         }
 
         return false;

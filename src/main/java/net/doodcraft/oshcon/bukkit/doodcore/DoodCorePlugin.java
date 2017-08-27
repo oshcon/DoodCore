@@ -2,6 +2,7 @@ package net.doodcraft.oshcon.bukkit.doodcore;
 
 import de.slikey.effectlib.EffectManager;
 import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeListener;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.*;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
@@ -95,12 +96,15 @@ public class DoodCorePlugin extends JavaPlugin {
         getCommand("tpcancel").setExecutor(new TpcancelCommand());
         getCommand("tpaccept").setExecutor(new TpacceptCommand());
         getCommand("tpdeny").setExecutor(new TpdenyCommand());
+        getCommand("track").setExecutor(new TrackCommand());
+        getCommand("badges").setExecutor(new BadgesCommand());
     }
 
     public void registerListeners() {
         registerEvents(plugin, new PlayerListener());
         registerEvents(plugin, new GivePetCommand());
         registerEvents(plugin, new PvPLogger());
+        registerEvents(plugin, new BadgeListener());
 
         if (Compatibility.isHooked("Votifier")) {
             registerEvents(plugin, new VotifierListener());

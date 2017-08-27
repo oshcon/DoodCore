@@ -1,18 +1,24 @@
 package net.doodcraft.oshcon.bukkit.doodcore.pvpmanager;
 
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.commands.BackCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +39,6 @@ public class PvPLogger implements Listener {
         blockedCommands.add("tpa");
         blockedCommands.add("tpahere");
         blockedCommands.add("tpaccept");
-        blockedCommands.add("t");
-        blockedCommands.add("town");
-        blockedCommands.add("towny");
         blockedCommands.add("ptp");
         blockedCommands.add("marry");
     }
@@ -78,15 +81,7 @@ public class PvPLogger implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         if (inCombat.containsKey(event.getPlayer().getUniqueId())) {
             if (!event.getPlayer().isDead() && event.getPlayer().isOnline()) {
-                Inventory inv = event.getPlayer().getInventory();
-
-                for (ItemStack i : inv.getContents()) {
-                    if (i != null) {
-                        event.getPlayer().getWorld().dropItemNaturally(event.getPlayer().getLocation(), i);
-                    }
-                }
-
-                event.getPlayer().getInventory().clear();
+                dropInventory(event.getPlayer());
                 event.getPlayer().setHealth(0.0);
 
                 Bukkit.broadcastMessage(StaticMethods.addColor("&7" + event.getPlayer().getName() + " &7logged out during PvP and paid the ultimate price! :o"));
@@ -150,7 +145,7 @@ public class PvPLogger implements Listener {
                 if (cPlayerVictim != null) {
                     if (cPlayerVictim.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
                         event.setCancelled(true);
-                        int timeLeft = Math.toIntExact((Settings.pvpProtection * 1000) - cPlayerVictim.getCurrentActiveTime());
+                        int timeLeft = Math.toIntExact(((Settings.pvpProtection * 1000) - cPlayerVictim.getCurrentActiveTime())/1000);
                         aggressor.sendMessage("§cThey still have new player PvP protection. §8[§e" + timeLeft + "s§8]");
                         return;
                     }
@@ -168,6 +163,76 @@ public class PvPLogger implements Listener {
                 // Notify them of their combat status and start blocking commands.
                 runCombat(victim);
                 runCombat(aggressor);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (event.getEntity() != null) {
+            if (event.getEntity() instanceof LivingEntity) {
+                if (event.getEntity() instanceof Player) {
+                    return;
+                }
+
+                if (event.getEntity().getKiller() != null) {
+                    if (event.getEntity().getKiller() instanceof Player) {
+                        Player killer = event.getEntity().getKiller();
+                        CorePlayer cKiller = CorePlayer.getPlayers().get(killer.getUniqueId());
+                        cKiller.addKill(event.getEntity());
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+
+        // Already in combat, update the last time.
+        if (inCombat.containsKey(event.getEntity().getUniqueId())) {
+            inCombat.put(event.getEntity().getUniqueId(), System.currentTimeMillis() - 14001L);
+        }
+
+        if (event.getEntity().getKiller() != null) {
+            if (event.getEntity().getKiller() instanceof Player) {
+                Player killer = event.getEntity().getKiller();
+                CorePlayer cKiller = CorePlayer.getPlayers().get(killer.getUniqueId());
+                dropInventory(event.getEntity());
+                dropHead(event.getEntity(), cKiller);
+                cKiller.addKill(event.getEntity());
+
+                event.getEntity().sendMessage("§cYou dropped your inventory due to PvP.");
+                // Add a method to drop player heads.
+                return;
+            }
+        }
+
+        BackCommand.addBackLocation(event.getEntity());
+    }
+
+    public static void dropInventory(Player player) {
+        Inventory inv = player.getInventory();
+
+        for (ItemStack i : inv.getContents()) {
+            if (i != null) {
+                player.getWorld().dropItemNaturally(player.getLocation(), i);
+            }
+        }
+
+        player.getInventory().clear();
+    }
+
+    public static void dropHead(Player player, CorePlayer cKiller) {
+        if (cKiller.getKills().size() > 1) {
+            if (!cKiller.getKills().containsKey("Player:" + player.getName())) {
+                ItemStack item = new ItemStack(Material.SKULL_ITEM, (short) 3);
+                SkullMeta meta = (SkullMeta) item.getItemMeta();
+                meta.setOwner(player.getName());
+                meta.setDisplayName("§r" + player.getName() + "'s Head");
+                item.setItemMeta(meta);
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+                Bukkit.broadcastMessage("§3" + cKiller.getName() + " beheaded " + player.getName() + "! :o");
             }
         }
     }

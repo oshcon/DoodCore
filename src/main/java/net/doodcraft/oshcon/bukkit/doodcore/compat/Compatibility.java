@@ -32,20 +32,12 @@ public class Compatibility {
             StaticMethods.log("&bHooked into ProjectKorra v" + getPlugin("ProjectKorra").getDescription().getVersion() + "!");
         }
 
-        if (hookPlugin("Towny", "0.91.4.9", "0.91.4.9")) {
-            StaticMethods.log("&bHooked into Towny v" + getPlugin("Towny").getDescription().getVersion() + "!");
-        }
-
-        if (hookPlugin("TownyChat", "0.91.4.9", "0.91.4.9")) {
-            StaticMethods.log("&bHooked into TownyChat v" + getPlugin("TownyChat").getDescription().getVersion() + "!");
-        }
-
         if (hookPlugin("mcMMO", "1.5.08", "1.5.08")) {
             StaticMethods.log("&bHooked into McMMO v" + getPlugin("mcMMO").getDescription().getVersion() + "!");
         }
 
         if (hookPlugin("MarriageMaster", "1.31.2", "1.31.2")) {
-            StaticMethods.log("&bHooked into Towny v" + getPlugin("Towny").getDescription().getVersion() + "!");
+            StaticMethods.log("&bHooked into MarriageMaster v" + getPlugin("MarriageMaster").getDescription().getVersion() + "!");
         }
 
         if (hookPlugin("Votifier", "2.3.4", "2.3.5")) {

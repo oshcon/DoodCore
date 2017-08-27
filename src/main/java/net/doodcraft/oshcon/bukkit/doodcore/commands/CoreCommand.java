@@ -1,7 +1,10 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import mkremins.fanciful.FancyMessage;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
@@ -27,7 +30,7 @@ public class CoreCommand implements CommandExecutor {
                 }
 
                 if (args.length == 0) {
-                    sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid");
+                    sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills");
                     return true;
                 }
 
@@ -109,7 +112,31 @@ public class CoreCommand implements CommandExecutor {
                     return true;
                 }
 
-                sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid");
+                if (args[0].equalsIgnoreCase("listkills")) {
+                    if (args.length > 1) {
+                        if (Bukkit.getPlayer(args[2]) != null) {
+                            CorePlayer killer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[2]).getUniqueId());
+                            if (killer.getKills().size() > 0) {
+                                sender.sendMessage(killer.getName() + "'s kills:");
+                                for (String kill : killer.getKills().keySet()) {
+                                    sender.sendMessage(kill + ": " + killer.getKills().get(kill));
+                                }
+                                return true;
+                            } else {
+                                sender.sendMessage("They have no kills.");
+                                return false;
+                            }
+                        } else {
+                            sender.sendMessage("Player is not online.");
+                            return false;
+                        }
+                    }
+
+                    sender.sendMessage("Invalid args.");
+                    return false;
+                }
+
+                sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills");
                 return false;
             } else {
                 if (args.length == 0) {
@@ -168,6 +195,30 @@ public class CoreCommand implements CommandExecutor {
 
                     sender.sendMessage(PlayerMethods.getCrackedUUID(args[1]).toString());
                     return true;
+                }
+
+                if (args[0].equalsIgnoreCase("listkills")) {
+                    if (args.length > 1) {
+                        if (Bukkit.getPlayer(args[2]) != null) {
+                            CorePlayer killer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[2]).getUniqueId());
+                            if (killer.getKills().size() > 0) {
+                                sender.sendMessage(killer.getName() + "'s kills:");
+                                for (String kill : killer.getKills().keySet()) {
+                                    sender.sendMessage(kill + ": " + killer.getKills().get(kill));
+                                }
+                                return true;
+                            } else {
+                                sender.sendMessage("They have no kills.");
+                                return false;
+                            }
+                        } else {
+                            sender.sendMessage("Player is not online.");
+                            return false;
+                        }
+                    }
+
+                    sender.sendMessage("Invalid args.");
+                    return false;
                 }
             }
         }

@@ -69,18 +69,16 @@ public class WarmupTeleportTask extends BukkitRunnable {
     @Override
     public void run() {
         if (!this.player.isOnline() || this.player.isDead()) {
-            StaticMethods.log("Cancelled teleport for offline/dead player " + player.getName());
             teleporting.remove(this.uuid);
             this.cancel();
             return;
         }
 
         if (this.player.getLocation().distanceSquared(from) >= 2) {
-            StaticMethods.log("Cancelled teleport due to movement for " + player.getName());
             if (command.equalsIgnoreCase("tpaccept")) {
                 if (toEnt instanceof Player) {
                     Player player = (Player) toEnt;
-                    player.sendMessage(StaticMethods.addColor("&c" + player.getName() + " moved, and could not be teleported."));
+                    player.sendMessage(StaticMethods.addColor("&cThey moved, and could not be teleported."));
                 }
             }
             this.player.sendMessage(StaticMethods.addColor("&cCancelled teleported due to movement."));

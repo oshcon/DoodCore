@@ -2,6 +2,8 @@ package net.doodcraft.oshcon.bukkit.doodcore.discord;
 
 import mkremins.fanciful.FancyMessage;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
@@ -39,7 +41,7 @@ public class DiscordManager {
         games = new ArrayList<>();
         games.add("IP: mc.doodcraft.net");
         games.add("<players> online now");
-        games.add("Type .help for help");
+        games.add("Type !help for help");
 
         ClientBuilder cb = new ClientBuilder();
         cb.withToken(token);
@@ -69,7 +71,12 @@ public class DiscordManager {
     public static void updateTopic() {
         if (client != null) {
             if (client.isLoggedIn()) {
-                DiscordManager.client.getChannelByID(Settings.discordChannel).changeTopic("ONLINE (IP: mc.doodcraft.net): " + Bukkit.getOnlinePlayers().size() + "/32 players online");
+                Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                    @Override
+                    public void run() {
+                        DiscordManager.client.getChannelByID(Settings.discordChannel).changeTopic("ONLINE (IP: mc.doodcraft.net): " + Bukkit.getOnlinePlayers().size() + "/32 players online");
+                    }
+                });
             }
         }
     }
@@ -77,8 +84,14 @@ public class DiscordManager {
     public static void updateGame() {
         if (client != null) {
             if (client.isLoggedIn()) {
-                int game = DoodCorePlugin.random.nextInt(games.size());
-                DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(CorePlayer.getPlayers().size())));
+
+                Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                    @Override
+                    public void run() {
+                        int game = DoodCorePlugin.random.nextInt(games.size());
+                        DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(CorePlayer.getPlayers().size())));
+                    }
+                });
             }
         }
     }
@@ -99,16 +112,20 @@ public class DiscordManager {
                 return;
             }
 
-            try {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[" + StaticMethods.removeColor(cPlayer.getNick()) + "]`**  " + message);
-                builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(66, 179, 244);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.withDescription("**`[" + StaticMethods.removeColor(cPlayer.getNick()) + "]`**  " + message);
+                        builder.withAuthorName(StaticMethods.removeColor(cPlayer.getName()));
+                        builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(66, 179, 244);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                    } catch (Exception ignored) {}
+                }
+            });
         }
     }
 
@@ -119,46 +136,39 @@ public class DiscordManager {
                 return;
             }
 
-            try {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription(StaticMethods.removeColor("*" + cPlayer.getNick() + " " + message + "*"));
-                builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(66, 179, 244);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.withDescription(StaticMethods.removeColor("*" + cPlayer.getNick() + " " + message + "*"));
+                        builder.withAuthorName(StaticMethods.removeColor(cPlayer.getName()));
+                        builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(66, 179, 244);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                    } catch (Exception ignored) {}
+                }
+            });
         }
     }
 
     public static void sendGameSay(Player player, String message) {
-        try {
-            if (player != null) {
-                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
-                if (cPlayer != null) {
-                    if (cPlayer.isIgnoringDiscord()) {
-                        return;
-                    }
-                }
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[DOODCRAFT]`**  " + message);
-                builder.withAuthorName(StaticMethods.removeColor(player.getName()));
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182, 66, 244);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } else {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[DOODCRAFT]`**  " + message);
-                builder.withAuthorName(StaticMethods.removeColor("CONSOLE"));
-                builder.withAuthorIcon("https://crafatar.com/avatars/CONSOLE?default=CONSOLE&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182, 66, 244);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+
+        Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.withDescription("**`[DOODCRAFT]`**  " + message);
+                    builder.withAuthorName(StaticMethods.removeColor("CONSOLE"));
+                    builder.withAuthorIcon("https://crafatar.com/avatars/CONSOLE?default=CONSOLE&overlay");
+                    builder.withTimestamp(System.currentTimeMillis());
+                    builder.withColor(182, 66, 244);
+                    RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                } catch (Exception ignored) {}
             }
-        } catch (Exception ignored) {
-        }
+        });
     }
 
     public static void sendGameLogin(Player player) {
@@ -169,16 +179,20 @@ public class DiscordManager {
                 return;
             }
 
-            try {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[JOIN]`**  " + player.getName() + " joined the game.");
-                builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(72, 244, 66);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.withDescription("**`[JOIN]`**  " + cPlayer.getName() + " joined the game.");
+                        builder.withAuthorName(cPlayer.getName());
+                        builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(72, 244, 66);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                    } catch (Exception ignored) {}
+                }
+            });
         }
     }
 
@@ -190,16 +204,20 @@ public class DiscordManager {
                 return;
             }
 
-            try {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[QUIT]`**  " + player.getName() + " left the game.");
-                builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(244, 75, 66);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.withDescription("**`[QUIT]`**  " + cPlayer.getName() + " left the game.");
+                        builder.withAuthorName(cPlayer.getName());
+                        builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(244, 75, 66);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                    } catch (Exception ignored) {}
+                }
+            });
         }
     }
 
@@ -211,60 +229,71 @@ public class DiscordManager {
                 return;
             }
 
-            try {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.withDescription("**`[DEATH]`**  " + message);
-                builder.withAuthorName(player.getName());
-                builder.withAuthorIcon("https://crafatar.com/avatars/" + player.getName() + "?default=MHF_Steve&overlay");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(229, 244, 66);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-            } catch (Exception ignored) {
-            }
+            Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.withDescription("**`[DEATH]`**  " + message);
+                        builder.withAuthorName(cPlayer.getName());
+                        builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(229, 244, 66);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                    } catch (Exception ignored) {
+                    }
+                }
+            });
         }
     }
 
     public static void sendGameWho() {
-        try {
-            if (Bukkit.getOnlinePlayers().size() <= 0) {
-                EmbedBuilder builder = new EmbedBuilder();
-                builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
-                builder.appendField("**`[WHO]`**", "It doesn't look like anybody is online right now. :thinking:", false);
-                builder.withAuthorName("Minecraft");
-                builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
-                builder.withTimestamp(System.currentTimeMillis());
-                builder.withColor(182, 66, 244);
-                RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-                return;
-            }
 
-            List<String> names = new ArrayList<>();
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                CorePlayer cPlayer = CorePlayer.getPlayers().get(p.getUniqueId());
+        List<String> names = new ArrayList<>();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            CorePlayer cPlayer = CorePlayer.getPlayers().get(p.getUniqueId());
 
-                String name = p.getName();
-                if (cPlayer != null) {
-                    if (cPlayer.isCurrentlyAfk()) {
-                        name = "[AFK] " + name;
-                    }
-                    if (cPlayer.isIgnoringDiscord()) {
-                        name = "[Ignoring Discord] " + name;
-                    }
+            String name = p.getName();
+            if (cPlayer != null) {
+                if (cPlayer.isCurrentlyAfk()) {
+                    name = "[AFK] " + name;
                 }
-
-                names.add(name);
+                if (cPlayer.isIgnoringDiscord()) {
+                    name = "[Ignoring Discord] " + name;
+                }
             }
 
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
-            builder.appendField("**`[WHO]`**", "**`Online (" + names.size() + "):`**  " + StringUtils.join(names, ", "), false);
-            builder.withAuthorName("Minecraft");
-            builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
-            builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182, 66, 244);
-            RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-        } catch (Exception ignored) {
+            names.add(name);
         }
+
+        Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (Bukkit.getOnlinePlayers().size() <= 0) {
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
+                        builder.appendField("**`[WHO]`**", "It doesn't look like anybody is online right now. :thinking:", false);
+                        builder.withAuthorName("Minecraft");
+                        builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
+                        builder.withTimestamp(System.currentTimeMillis());
+                        builder.withColor(182, 66, 244);
+                        RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                        return;
+                    }
+
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
+                    builder.appendField("**`[WHO]`**", "**`Online (" + names.size() + "):`**  " + StringUtils.join(names, ", "), false);
+                    builder.withAuthorName("Minecraft");
+                    builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
+                    builder.withTimestamp(System.currentTimeMillis());
+                    builder.withColor(182, 66, 244);
+                    RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                } catch (Exception ignored) {
+                }
+            }
+        });
     }
 
     public static void sendGameOnline() {
@@ -277,7 +306,7 @@ public class DiscordManager {
                             EmbedBuilder builder = new EmbedBuilder();
                             builder.appendField("**`[SERVER STATUS]`**", "The server is now online!", true);
                             builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
-                            builder.appendField("**`[HELP]`**", "Type .help to see a list of commands.", false);
+                            builder.appendField("**`[HELP]`**", "Type !help to see a list of commands.", false);
                             builder.withAuthorName("Minecraft");
                             builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
                             builder.withTimestamp(System.currentTimeMillis());
@@ -305,44 +334,60 @@ public class DiscordManager {
     }
 
     public static void sendGameHelp() {
-        try {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.withTitle("**`[HELP]`**");
-            builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
-            builder.appendField("**`[COMMANDS]`**", "**`.help`**:  See this list of commands.\n**`.who`**:  View a list of who is on the server.\n**`.sync`**:  Get instructions on how to sync your MC and Discord accounts.\n**`.nuke`**:  Get instructions on how to send a Towny nuke.", true);
-            builder.withAuthorName("Minecraft");
-            builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
-            builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182, 66, 244);
-            RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
-        } catch (Exception ignored) {
-        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.withTitle("**`[HELP]`**");
+                    builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
+                    builder.appendField("**`[COMMANDS]`**", "**`!help`**:  See this list of commands.\n**`!who`**:  View a list of who is on the server.\n**`!sync`**:  Get instructions on how to sync your MC and Discord accounts.\n**`!nuke`**:  Get instructions on how to send a nuke.", true);
+                    builder.withAuthorName("Minecraft");
+                    builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
+                    builder.withTimestamp(System.currentTimeMillis());
+                    builder.withColor(182, 66, 244);
+                    RequestBuffer.request(() -> DiscordManager.client.getChannelByID(Settings.discordChannel).sendMessage(builder.build()));
+                } catch (Exception ignored) {
+                }
+            }
+        });
     }
 
     public static void sendSync(IUser user) {
-        try {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.appendField("**`[SYNC]`**", "Syncing will pair your Discord account with your in-game profile. Upon logging in to the Minecraft server, your in-game rank will automatically update to match your Discord rank. Get started by joining then typing `/discord sync`.", true);
-            builder.withAuthorName("Minecraft");
-            builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
-            builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182, 66, 244);
-            RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
-        } catch (Exception ignored) {
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.appendField("**`[SYNC]`**", "Syncing will pair your Discord account with your in-game profile. Upon logging in to the Minecraft server, your in-game rank will automatically update to match your Discord rank. Get started by joining then typing `/discord sync`.", true);
+                    builder.withAuthorName("Minecraft");
+                    builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
+                    builder.withTimestamp(System.currentTimeMillis());
+                    builder.withColor(182, 66, 244);
+                    RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
+                } catch (Exception ignored) {
+                }
+            }
+        });
     }
 
     public static void sendNukeRoll(IUser user) {
-        try {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.appendField("**`[NUKE]`**", "Nuke everyone online by carefully following the instructions of [this video](https://youtu.be/dQw4w9WgXcQ).", true);
-            builder.withAuthorName("Minecraft");
-            builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
-            builder.withTimestamp(System.currentTimeMillis());
-            builder.withColor(182, 66, 244);
-            RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
-        } catch (Exception ignored) {
-        }
+        Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EmbedBuilder builder = new EmbedBuilder();
+                    builder.appendField("**`[NUKE]`**", "Nuke everyone online by carefully following the instructions of [this video](https://youtu.be/dQw4w9WgXcQ).", true);
+                    builder.withAuthorName("Minecraft");
+                    builder.withAuthorIcon("https://hydra-media.cursecdn.com/minecraft.gamepedia.com/c/c5/Grass.png");
+                    builder.withTimestamp(System.currentTimeMillis());
+                    builder.withColor(182, 66, 244);
+                    RequestBuffer.request(() -> DiscordManager.client.getOrCreatePMChannel(user).sendMessage(builder.build()));
+                } catch (Exception ignored) {
+                }
+            }
+        });
     }
 
     public static Boolean isStaff(IGuild guild, IUser user) {
@@ -463,9 +508,12 @@ public class DiscordManager {
                     Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
                         @Override
                         public void run() {
+                            cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
                             cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
                         }
                     }, 20L);
+                } else {
+                    cPlayer.removeBadge(new Badge(BadgeType.SUPPORTER));
                 }
             }
         }
@@ -536,10 +584,12 @@ public class DiscordManager {
                         // Their supporter status has not expired.
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
                         cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
+                        cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
                         return;
                     }
                     // Their supporter status has expired. Notify them of this, since they will not get a Discord notification.
                     // TODO: Remove the user from the supporter list. Will need to use the Gist API, if possible.
+                    cPlayer.removeBadge(new Badge(BadgeType.SUPPORTER));
                     StaticMethods.log(cPlayer.getName() + "'s supporter status has expired. Remind them to renew?");
                 }
             } catch (Exception ex) {

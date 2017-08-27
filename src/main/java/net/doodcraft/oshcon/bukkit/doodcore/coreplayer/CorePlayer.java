@@ -5,6 +5,9 @@ import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeAwardEvent;
+import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
@@ -17,6 +20,8 @@ import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -80,6 +85,16 @@ public class CorePlayer {
 
         cPlayer.reload();
 
+        List<String> pKill = new ArrayList<>();
+        for (String kill : cPlayer.getKills().keySet()) {
+            if (kill.startsWith("Player:")) {
+                pKill.add(kill);
+            }
+        }
+        if (pKill.size() >= 50) {
+            cPlayer.addBadge(new Badge(BadgeType.PLAYER_SLAYER));
+        }
+
         Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined Bending."));
 
         new CorePlayerCreateEvent(cPlayer);
@@ -105,6 +120,8 @@ public class CorePlayer {
     private Long lastVote;
     private Boolean thankedForOfflineVote;
     private Boolean warnedPVPExpiration;
+    private List<Badge> badges;
+    private Map<String, Integer> kills;
 
     public CorePlayer(UUID uuid) {
         // Default values. These can/will be updated after creating the initial CorePlayer object.
@@ -131,6 +148,8 @@ public class CorePlayer {
         this.lastVote = 0L;
         this.thankedForOfflineVote = true;
         this.warnedPVPExpiration = false;
+        this.badges = new ArrayList<>();
+        this.kills = new ConcurrentHashMap<>();
 
         // Add CorePlayer to Map
         reload();
@@ -176,9 +195,130 @@ public class CorePlayer {
         if (data.get("Homes") != null) {
             data.remove("Homes");
         }
+
         data.getYaml().createSection("Homes", getHomes());
 
+        if (data.get("Kills") != null) {
+            data.remove("Kills");
+        }
+
+        data.getYaml().createSection("Kills", getKills());
+
+        List<String> badgeNames = new ArrayList<>();
+        if (getBadges().size() > 0) {
+            for (Badge b : getBadges()) {
+                badgeNames.add(b.getName().toUpperCase());
+            }
+        }
+        if (badgeNames.size() > 0) {
+            for (String name : badgeNames) {
+                if (!data.getStringList("Badges").contains(name)) {
+                    data.addToStringList("Badges", name);
+                }
+            }
+        }
+
         data.save();
+    }
+
+    public void loadData() {
+        Configuration data = getData();
+        if (data.get("UUID") == null) {
+            saveData();
+            reload();
+        } else {
+            // Update cPlayer from their Data file
+            setUniqueId(UUID.fromString(data.getString("UUID")));
+            setNick(data.getString("Nick"));
+            setActiveTime(Long.valueOf(data.getString("Time.ActiveTime")));
+            setAfkTime(Long.valueOf(data.getString("Time.AfkTime")));
+            setDiscordUserId(Long.valueOf(data.getString("Discord.Id")));
+            setSyncedOnce(data.getBoolean("Discord.SyncedOnce"));
+            setIgnoringDiscord(data.getBoolean("Discord.Ignoring"));
+            setIgnoringDiscordReminders(data.getBoolean("Discord.IgnoringReminders"));
+            setLastJoined(Long.valueOf(data.getString("LastJoined")));
+            setLastQuit(Long.valueOf(data.getString("LastQuit")));
+            setLastLocation(data.getString("LastLocation"));
+            setTotalVotes(data.getInteger("Voting.Total"));
+            setLastVote(Long.valueOf(data.getString("Voting.LastVote")));
+            setThankedForOfflineVote(data.getBoolean("Voting.Thanked"));
+            setWarnedPVPExpiration(data.getBoolean("Warned.PvPProtectionExpired"));
+            if (data.get("Homes") != null) {
+                for (String id : data.getYaml().getConfigurationSection("Homes").getKeys(false)) {
+                    getHomes().put(id, data.getString("Homes." + id));
+                }
+            }
+            if (data.get("Kills") != null) {
+                for (String id : data.getYaml().getConfigurationSection("Kills").getKeys(false)) {
+                    getKills().put(id, data.getInteger("Kills." + id));
+                }
+            }
+            if (data.get("Badges") != null) {
+                if (data.getStringList("Badges").size() > 0) {
+                    for (String b : data.getStringList("Badges")) {
+                        if (BadgeType.isBadgeType(b.toUpperCase())) {
+                            getBadges().add(new Badge(b.toUpperCase()));
+                        }
+                    }
+                }
+            }
+
+            // Thank them for voting if they have not been thanked.
+            if (!getThankedForOfflineVote()) {
+                // Thank them!
+                getPlayer().sendMessage("§aThank you for voting!");
+                setThankedForOfflineVote(true);
+            }
+
+            addBadge(new Badge(BadgeType.BETA_TESTER));
+
+            saveData();
+            reload();
+        }
+    }
+
+    public void reload() {
+        // Update display name.
+        getPlayer().setDisplayName(StaticMethods.addColor(this.nick));
+
+        // Update tablist name.
+        if (this.afkStatus) {
+            getPlayer().setPlayerListName(StaticMethods.addColor("&7[AFK] " + PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
+        } else {
+            getPlayer().setPlayerListName(StaticMethods.addColor(PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
+        }
+
+        // Refresh the CorePlayer list.
+        removePlayer(this);
+        addPlayer(this);
+    }
+
+    // Only invoke if the player is online and is leaving.
+    public void destroy() {
+        UUID uuid = getUniqueId();
+
+        if (DiscordManager.toggled) {
+            if (!isIgnoringDiscord()) {
+                DiscordManager.sendGameQuit(getPlayer());
+            }
+        }
+
+        setActiveTime(getCurrentActiveTime());
+        setAfkTime(getCurrentAfkTime());
+
+        CorePlayer.activeTimes.remove(uuid);
+        CorePlayer.afkTimes.remove(getUniqueId());
+
+        Bukkit.getScheduler().cancelTask(AfkHandler.tasks.get(uuid));
+        AfkHandler.lastAction.remove(uuid);
+        AfkHandler.lastLocation.remove(uuid);
+        AfkHandler.tasks.remove(uuid);
+
+        WarmupTeleportTask.teleporting.remove(uuid);
+
+        saveData();
+
+        removePlayer(this);
     }
 
     // NAME
@@ -379,6 +519,53 @@ public class CorePlayer {
         return homes;
     }
 
+    public int getMaxHomes() {
+        if (PlayerMethods.hasPermission(getPlayer(), "core.command.sethome", false)) {
+            if (getPlayer().isOp()) {
+                return 2147483647;
+            }
+
+            if (getPlayer().hasPermission("core.*")) {
+                return 2147483647;
+            }
+
+            boolean hasNode = false;
+
+            Set<PermissionAttachmentInfo> perms = getPlayer().getEffectivePermissions();
+
+            ArrayList<Integer> possibleValues = new ArrayList<>();
+            possibleValues.add(1);
+
+            for (PermissionAttachmentInfo perm : perms) {
+                String permission = perm.getPermission();
+
+                if (permission.toLowerCase().startsWith("core.maxhomes.")) {
+                    hasNode = true;
+                    String args[] = permission.split("\\.");
+
+                    if (permission.toLowerCase().equals("core.maxhomes.*")) {
+                        return 2147483647;
+                    }
+
+                    try {
+                        possibleValues.add(Integer.valueOf(args[2]));
+                    } catch (Exception ex) {
+                        net.doodcraft.oshcon.bukkit.enderpads.util.StaticMethods.debug("&eDiscovered an invalid permission node for &b" + getName() + "&e: &c" + permission);
+                        possibleValues.add(1);
+                    }
+                }
+            }
+
+            if (hasNode) {
+                return Collections.max(possibleValues);
+            } else {
+                return 1;
+            }
+        } else {
+            return 0;
+        }
+    }
+
     // LAST JOINED
     public Long getLastJoined() {
         return this.lastJoined;
@@ -454,6 +641,60 @@ public class CorePlayer {
         reload();
     }
 
+    // BADGES
+    public List<Badge> getBadges() {
+        return this.badges;
+    }
+
+    public void addBadge(Badge badge) {
+        if (hasBadge(badge)) {
+            return;
+        }
+        this.badges.add(badge);
+        BadgeAwardEvent event = new BadgeAwardEvent(this, badge);
+        Bukkit.getPluginManager().callEvent(event);
+        reload();
+    }
+
+    public void removeBadge(Badge badge) {
+        this.badges.remove(badge);
+        reload();
+    }
+
+    public Boolean hasBadge(Badge badge) {
+        if (this.badges.contains(badge)) {
+            return true;
+        }
+        return getData().getStringList("Badges").contains(badge.getName());
+    }
+
+    // KILLS
+    public Map<String, Integer> getKills() {
+        return this.kills;
+    }
+
+    public void addKill(Entity entity) {
+        if (entity instanceof Player) {
+            String name = "Player:" + entity.getName();
+            int increase = 1;
+            if (getKills().containsKey(name)) {
+                increase = increase + getKills().get(name);
+            }
+            getKills().put(name, increase);
+            reload();
+            return;
+        }
+
+        if (entity instanceof LivingEntity) {
+            int increase = 1;
+            if (getKills().containsKey(entity.getName())) {
+                increase = increase + getKills().get(entity.getName());
+            }
+            getKills().put(entity.getName(), increase);
+            reload();
+        }
+    }
+
     // BUKKIT/SPIGOT/ETC
     public Player getPlayer() {
         return Bukkit.getPlayer(this.uuid);
@@ -487,135 +728,4 @@ public class CorePlayer {
     }
 
     // UTIL
-    // LOAD
-    public void loadData() {
-        Configuration data = getData();
-        if (data.get("UUID") == null) {
-            saveData();
-            reload();
-        } else {
-            // Update cPlayer from their Data file
-            setUniqueId(UUID.fromString(data.getString("UUID")));
-            setNick(data.getString("Nick"));
-            setActiveTime(Long.valueOf(data.getString("Time.ActiveTime")));
-            setAfkTime(Long.valueOf(data.getString("Time.AfkTime")));
-            setDiscordUserId(Long.valueOf(data.getString("Discord.Id")));
-            setSyncedOnce(data.getBoolean("Discord.SyncedOnce"));
-            setIgnoringDiscord(data.getBoolean("Discord.Ignoring"));
-            setIgnoringDiscordReminders(data.getBoolean("Discord.IgnoringReminders"));
-            setLastJoined(Long.valueOf(data.getString("LastJoined")));
-            setLastQuit(Long.valueOf(data.getString("LastQuit")));
-            setLastLocation(data.getString("LastLocation"));
-            setTotalVotes(data.getInteger("Voting.Total"));
-            setLastVote(Long.valueOf(data.getString("Voting.LastVote")));
-            setThankedForOfflineVote(data.getBoolean("Voting.Thanked"));
-            setWarnedPVPExpiration(data.getBoolean("Warned.PvPProtectionExpired"));
-            if (data.get("Homes") != null) {
-                for (String id : data.getYaml().getConfigurationSection("Homes").getKeys(false)) {
-                    getHomes().put(id, data.getString("Homes." + id));
-                }
-            }
-
-            // Thank them for voting if they have not been thanked.
-            if (!getThankedForOfflineVote()) {
-                // Thank them!
-                getPlayer().sendMessage("§aThank you for voting!");
-                setThankedForOfflineVote(true);
-            }
-
-            saveData();
-            reload();
-        }
-    }
-
-    public void reload() {
-        // Update display name.
-        getPlayer().setDisplayName(StaticMethods.addColor(this.nick));
-
-        // Update tablist name.
-        if (this.afkStatus) {
-            getPlayer().setPlayerListName(StaticMethods.addColor("&7[AFK] " + PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
-        } else {
-            getPlayer().setPlayerListName(StaticMethods.addColor(PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
-        }
-
-        // Refresh the CorePlayer list.
-        removePlayer(this);
-        addPlayer(this);
-    }
-
-    // Only invoke if the player is online and is leaving.
-    public void destroy() {
-        UUID uuid = getUniqueId();
-
-        if (DiscordManager.toggled) {
-            if (!isIgnoringDiscord()) {
-                DiscordManager.sendGameQuit(getPlayer());
-            }
-        }
-
-        setActiveTime(getCurrentActiveTime());
-        setAfkTime(getCurrentAfkTime());
-
-        CorePlayer.activeTimes.remove(uuid);
-        CorePlayer.afkTimes.remove(getUniqueId());
-
-        Bukkit.getScheduler().cancelTask(AfkHandler.tasks.get(uuid));
-        AfkHandler.lastAction.remove(uuid);
-        AfkHandler.lastLocation.remove(uuid);
-        AfkHandler.tasks.remove(uuid);
-
-        WarmupTeleportTask.teleporting.remove(uuid);
-
-        saveData();
-
-        removePlayer(this);
-    }
-
-    public int getMaxHomes() {
-        if (PlayerMethods.hasPermission(getPlayer(), "core.command.sethome", false)) {
-            if (getPlayer().isOp()) {
-                return 2147483647;
-            }
-
-            if (getPlayer().hasPermission("core.*")) {
-                return 2147483647;
-            }
-
-            boolean hasNode = false;
-
-            Set<PermissionAttachmentInfo> perms = getPlayer().getEffectivePermissions();
-
-            ArrayList<Integer> possibleValues = new ArrayList<>();
-            possibleValues.add(1);
-
-            for (PermissionAttachmentInfo perm : perms) {
-                String permission = perm.getPermission();
-
-                if (permission.toLowerCase().startsWith("core.maxhomes.")) {
-                    hasNode = true;
-                    String args[] = permission.split("\\.");
-
-                    if (permission.toLowerCase().equals("core.maxhomes.*")) {
-                        return 2147483647;
-                    }
-
-                    try {
-                        possibleValues.add(Integer.valueOf(args[2]));
-                    } catch (Exception ex) {
-                        net.doodcraft.oshcon.bukkit.enderpads.util.StaticMethods.debug("&eDiscovered an invalid permission node for &b" + getName() + "&e: &c" + permission);
-                        possibleValues.add(1);
-                    }
-                }
-            }
-
-            if (hasNode) {
-                return Collections.max(possibleValues);
-            } else {
-                return 1;
-            }
-        } else {
-            return 0;
-        }
-    }
 }

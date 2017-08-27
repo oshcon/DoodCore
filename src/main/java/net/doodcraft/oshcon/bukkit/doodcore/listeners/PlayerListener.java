@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
@@ -80,10 +81,6 @@ public class PlayerListener implements Listener {
             }
         }
 
-        if (Compatibility.isHooked("TownyChat")) {
-            // TODO
-        }
-
         if (!event.isCancelled()) {
             if (DiscordManager.toggled) {
                 if (DiscordManager.client != null) {
@@ -105,11 +102,11 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onTeleport(PlayerTeleportEvent event) {
-        if (event.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.COMMAND)) {
+        if (event.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.COMMAND) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.UNKNOWN)) {
             Block block = event.getTo().add(0, 1, 0).getBlock();
             if (block != null) {
                 if (block.getType().isSolid() || block.getType().isOccluding()) {
-                    event.getPlayer().teleport(event.getTo().getWorld().getHighestBlockAt(event.getTo()).getLocation().add(0, 1, 0));
+                    event.getPlayer().teleport(event.getTo().getWorld().getHighestBlockAt(event.getTo()).getLocation().add(0, 0.25, 0));
                 }
             }
         }
@@ -206,6 +203,38 @@ public class PlayerListener implements Listener {
             return;
         }
 
+        // TODO: Clean up.
+        if (player.getInventory().getItemInMainHand() != null) {
+            if (player.getInventory().getItemInMainHand().hasItemMeta()) {
+                if (StaticMethods.removeColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()).equalsIgnoreCase("unsitter")) {
+                    if (player.hasPermission("core.temp.unsit")) {
+                        Entity entity = event.getRightClicked();
+                        if (entity instanceof Tameable) {
+                            Tameable tameable = (Tameable) entity;
+                            if (tameable.isTamed()) {
+                                if (entity instanceof Wolf) {
+                                    Wolf wolf = (Wolf) entity;
+                                    if (wolf.isSitting()) {
+                                        wolf.setSitting(false);
+                                    } else {
+                                        wolf.setSitting(true);
+                                    }
+                                }
+                                if (entity instanceof Ocelot) {
+                                    Ocelot wolf = (Ocelot) entity;
+                                    if (wolf.isSitting()) {
+                                        wolf.setSitting(false);
+                                    } else {
+                                        wolf.setSitting(true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
 
             @Override
@@ -260,8 +289,6 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        BackCommand.addBackLocation(event.getEntity());
-
         DiscordManager.sendGameDeath(event.getEntity(), event.getDeathMessage());
     }
 
@@ -269,10 +296,12 @@ public class PlayerListener implements Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         CorePlayer cPlayer = CorePlayer.getPlayers().get(event.getPlayer().getUniqueId());
 
-        for (String name : cPlayer.getHomes().keySet()) {
-            if (name.equalsIgnoreCase("home")) {
-                event.setRespawnLocation(StaticMethods.getPreciseLocationFromString(cPlayer.getHomes().get(name)));
-                return;
+        if (PlayerMethods.hasVotedToday(event.getPlayer())) {
+            for (String name : cPlayer.getHomes().keySet()) {
+                if (name.equalsIgnoreCase("home")) {
+                    event.setRespawnLocation(StaticMethods.getPreciseLocationFromString(cPlayer.getHomes().get(name)));
+                    return;
+                }
             }
         }
 

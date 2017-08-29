@@ -32,16 +32,21 @@ public class MyTimeCommand implements CommandExecutor {
                             CorePlayer cPlayer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[0]).getUniqueId());
 
                             player.sendMessage("§7" + cPlayer.getName() + "'s Time: ");
-                            player.sendMessage("§8:: §7Online Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));
-                            player.sendMessage("§8:: §7Active Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime()));
-                            player.sendMessage("§8:: §7AFK Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentAfkTime()));
-                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
-                                player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
+                            player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));
+                            player.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime()));
+                            player.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentAfkTime()));
+                            try {
+                                player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(cPlayer.timeToNextPayout()));
+                            } catch (Exception ex) {
+                                player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
+                            }
+                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000) && !cPlayer.getWarnedPVPExpiration()) {
+                                player.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
                                 player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                             }
                             if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
-                                player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
+                                player.sendMessage("§8:: §7PvP Protection: §3" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
                                 player.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
                             }
@@ -54,19 +59,9 @@ public class MyTimeCommand implements CommandExecutor {
                             Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml");
                             if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
                                 player.sendMessage("§7" + args[0] + "'s Time: ");
-                                player.sendMessage("§8:: §7Online Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
-                                player.sendMessage("§8:: §7Active Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
-                                player.sendMessage("§8:: §7AFK Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
-                                if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.veteranTime * 1000)) {
-                                    player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
-                                } else {
-                                    player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
-                                }
-                                if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.pvpProtection * 1000)) {
-                                    player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
-                                } else {
-                                    player.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
-                                }
+                                player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
+                                player.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
+                                player.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
                                 return true;
                             }
                         }
@@ -82,16 +77,21 @@ public class MyTimeCommand implements CommandExecutor {
                     Long afkTime = cPlayer.getCurrentAfkTime();
 
                     player.sendMessage("§7" + player.getName() + "'s Time: ");
-                    player.sendMessage("§8:: §7Online Time: §d" + StaticMethods.getDurationBreakdown(activeTime + afkTime));
-                    player.sendMessage("§8:: §7Active Time: §d" + StaticMethods.getDurationBreakdown(activeTime));
-                    player.sendMessage("§8:: §7AFK Time: §d" + StaticMethods.getDurationBreakdown(afkTime));
+                    player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(activeTime + afkTime));
+                    player.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(activeTime));
+                    player.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(afkTime));
+                    try {
+                        player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(cPlayer.timeToNextPayout()));
+                    } catch (Exception ex) {
+                        player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
+                    }
                     if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
-                        player.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
+                        player.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                     } else {
                         player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                     }
-                    if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
-                        player.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
+                    if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayer.getWarnedPVPExpiration()) {
+                        player.sendMessage("§8:: §7PvP Protection: §3" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
                     } else {
                         player.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
                     }
@@ -104,16 +104,21 @@ public class MyTimeCommand implements CommandExecutor {
                         CorePlayer cPlayer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[0]).getUniqueId());
 
                         sender.sendMessage("§7" + cPlayer.getName() + "'s Time: ");
-                        sender.sendMessage("§8:: §7Online Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));
-                        sender.sendMessage("§8:: §7Active Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime()));
-                        sender.sendMessage("§8:: §7AFK Time: §d" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentAfkTime()));
+                        sender.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));
+                        sender.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime()));
+                        sender.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentAfkTime()));
+                        try {
+                            sender.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(cPlayer.timeToNextPayout()));
+                        } catch (Exception ex) {
+                            sender.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
+                        }
                         if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
-                            sender.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
+                            sender.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                         } else {
                             sender.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                         }
-                        if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
-                            sender.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
+                        if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayer.getWarnedPVPExpiration()) {
+                            sender.sendMessage("§8:: §7PvP Protection: §3" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
                         } else {
                             sender.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
                         }
@@ -126,19 +131,9 @@ public class MyTimeCommand implements CommandExecutor {
                         Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml");
                         if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
                             sender.sendMessage("§7" + args[0] + "'s Time: ");
-                            sender.sendMessage("§8:: §7Online Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
-                            sender.sendMessage("§8:: §7Active Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
-                            sender.sendMessage("§8:: §7AFK Time: §d" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
-                            if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.veteranTime * 1000)) {
-                                sender.sendMessage("§8:: §7Veteran Rankup: §d" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
-                            } else {
-                                sender.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
-                            }
-                            if (Long.valueOf(cData.getString("Time.ActiveTime")) < (Settings.pvpProtection * 1000)) {
-                                sender.sendMessage("§8:: §7PvP Protection: §d" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - Long.valueOf(cData.getString("Time.ActiveTime"))));
-                            } else {
-                                sender.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
-                            }
+                            sender.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
+                            sender.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
+                            sender.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
                             return true;
                         }
                     }

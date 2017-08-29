@@ -1,8 +1,6 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import mkremins.fanciful.FancyMessage;
-import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
-import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;

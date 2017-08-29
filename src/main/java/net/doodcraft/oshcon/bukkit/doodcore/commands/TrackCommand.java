@@ -1,9 +1,7 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;

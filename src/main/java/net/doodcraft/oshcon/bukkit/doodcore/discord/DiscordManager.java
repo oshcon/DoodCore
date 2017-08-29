@@ -508,7 +508,7 @@ public class DiscordManager {
                     Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
                         @Override
                         public void run() {
-                            cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
+//                            cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
                             cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
                         }
                     }, 20L);
@@ -584,7 +584,7 @@ public class DiscordManager {
                         // Their supporter status has not expired.
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "pex user " + cPlayer.getName() + " group add Supporter");
                         cPlayer.getPlayer().sendMessage("§6Thank you for supporting DoodCraft! §c❤");
-                        cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
+//                        cPlayer.addBadge(new Badge(BadgeType.SUPPORTER));
                         return;
                     }
                     // Their supporter status has expired. Notify them of this, since they will not get a Discord notification.
@@ -605,7 +605,7 @@ public class DiscordManager {
             public void run() {
                 CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
-                FancyMessage msg = new FancyMessage(Messages.parse(cPlayer, "<roleprefix><nick>"));
+                FancyMessage msg = new FancyMessage(Messages.parse(cPlayer, "<chatprefix> §r<roleprefix><nick>"));
                 String hover = Messages.parse(cPlayer, Messages.getHover(cPlayer));
 
                 msg.tooltip(hover);

@@ -91,9 +91,9 @@ public class CorePlayer {
                 pKill.add(kill);
             }
         }
-        if (pKill.size() >= 50) {
-            cPlayer.addBadge(new Badge(BadgeType.PLAYER_SLAYER));
-        }
+//        if (pKill.size() >= 50) {
+//            cPlayer.addBadge(new Badge(BadgeType.PLAYER_SLAYER));
+//        }
 
         Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined Bending."));
 
@@ -122,6 +122,7 @@ public class CorePlayer {
     private Boolean warnedPVPExpiration;
     private List<Badge> badges;
     private Map<String, Integer> kills;
+    private Long lastPayout;
 
     public CorePlayer(UUID uuid) {
         // Default values. These can/will be updated after creating the initial CorePlayer object.
@@ -150,6 +151,7 @@ public class CorePlayer {
         this.warnedPVPExpiration = false;
         this.badges = new ArrayList<>();
         this.kills = new ConcurrentHashMap<>();
+        this.lastPayout = 0L;
 
         // Add CorePlayer to Map
         reload();
@@ -191,6 +193,7 @@ public class CorePlayer {
         data.set("Voting.LastVote", getLastVote());
         data.set("Voting.Thanked", getThankedForOfflineVote());
         data.set("Warned.PvPProtectionExpired", getWarnedPVPExpiration());
+        data.set("LastPayout", getLastPayout());
 
         if (data.get("Homes") != null) {
             data.remove("Homes");
@@ -210,6 +213,7 @@ public class CorePlayer {
                 badgeNames.add(b.getName().toUpperCase());
             }
         }
+
         if (badgeNames.size() > 0) {
             for (String name : badgeNames) {
                 if (!data.getStringList("Badges").contains(name)) {
@@ -243,6 +247,13 @@ public class CorePlayer {
             setLastVote(Long.valueOf(data.getString("Voting.LastVote")));
             setThankedForOfflineVote(data.getBoolean("Voting.Thanked"));
             setWarnedPVPExpiration(data.getBoolean("Warned.PvPProtectionExpired"));
+
+            if (data.get("LastPayout") == null) {
+                setLastPayout(0L);
+            } else {
+                setLastPayout(Long.valueOf(data.getString("LastPayout")));
+            }
+
             if (data.get("Homes") != null) {
                 for (String id : data.getYaml().getConfigurationSection("Homes").getKeys(false)) {
                     getHomes().put(id, data.getString("Homes." + id));
@@ -270,7 +281,7 @@ public class CorePlayer {
                 setThankedForOfflineVote(true);
             }
 
-            addBadge(new Badge(BadgeType.BETA_TESTER));
+//            addBadge(new Badge(BadgeType.BETA_TESTER));
 
             saveData();
             reload();
@@ -673,6 +684,16 @@ public class CorePlayer {
         return this.kills;
     }
 
+    public List<String> getPlayerKills() {
+        List<String> players = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : getKills().entrySet()) {
+            if (entry.getKey().startsWith("Player:")) {
+                players.add(entry.getKey());
+            }
+        }
+        return players;
+    }
+
     public void addKill(Entity entity) {
         if (entity instanceof Player) {
             String name = "Player:" + entity.getName();
@@ -687,12 +708,26 @@ public class CorePlayer {
 
         if (entity instanceof LivingEntity) {
             int increase = 1;
-            if (getKills().containsKey(entity.getName())) {
-                increase = increase + getKills().get(entity.getName());
+            if (getKills().containsKey(entity.getClass().getSimpleName())) {
+                increase = increase + getKills().get(entity.getClass().getSimpleName());
             }
-            getKills().put(entity.getName(), increase);
+            getKills().put(entity.getClass().getSimpleName(), increase);
             reload();
         }
+    }
+
+    // PAYOUTS
+    public Long getLastPayout() {
+        return this.lastPayout;
+    }
+
+    public void setLastPayout(Long time) {
+        this.lastPayout = time;
+        reload();
+    }
+
+    public Long timeToNextPayout() {
+        return (1800000 - (getCurrentActiveTime() - getLastPayout()));
     }
 
     // BUKKIT/SPIGOT/ETC

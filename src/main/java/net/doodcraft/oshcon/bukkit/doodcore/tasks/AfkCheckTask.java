@@ -15,7 +15,6 @@ public class AfkCheckTask implements Runnable {
     public AfkCheckTask(Player player) {
         this.player = player;
         this.uuid = player.getUniqueId();
-        run();
     }
 
     @Override
@@ -31,7 +30,7 @@ public class AfkCheckTask implements Runnable {
         AfkHandler.lastAction.computeIfAbsent(uuid, k -> System.currentTimeMillis());
 
         if (AfkHandler.lastLocation.get(uuid).equals(AfkHandler.locString(this.player.getLocation()))) {
-            if ((System.currentTimeMillis() - AfkHandler.lastAction.get(uuid)) >= (long) (300 * 1000)) {
+            if ((System.currentTimeMillis() - AfkHandler.lastAction.get(uuid)) >= (long) (360 * 1000)) {
                 if (!cPlayer.isCurrentlyAfk()) {
                     cPlayer.setAfkStatus(true, "Idling§r");
                     return;
@@ -44,7 +43,9 @@ public class AfkCheckTask implements Runnable {
             }
         } else {
             if (cPlayer.isCurrentlyAfk()) {
-                cPlayer.setAfkStatus(false, "Who cares about the reason?§r");
+                if (!cPlayer.isVanished()) {
+                    cPlayer.setAfkStatus(false, "Who cares about the reason?§r");
+                }
             }
             AfkHandler.lastAction.put(uuid, System.currentTimeMillis());
         }

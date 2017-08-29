@@ -98,6 +98,7 @@ public class DoodCorePlugin extends JavaPlugin {
         getCommand("tpdeny").setExecutor(new TpdenyCommand());
         getCommand("track").setExecutor(new TrackCommand());
         getCommand("badges").setExecutor(new BadgesCommand());
+        getCommand("pvp").setExecutor(new PvPCommand());
     }
 
     public void registerListeners() {

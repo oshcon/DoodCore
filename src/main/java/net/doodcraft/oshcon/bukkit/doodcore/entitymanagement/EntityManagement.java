@@ -6,6 +6,6 @@ import org.bukkit.Bukkit;
 
 public class EntityManagement {
     public static void startItemPurgeTask() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new PurgeItemTask(), 0L, 3600 * 20L);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(DoodCorePlugin.plugin, new PurgeItemTask(), 0L, 7200 * 20L);
     }
 }

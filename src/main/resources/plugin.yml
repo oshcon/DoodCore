@@ -58,6 +58,8 @@ commands:
     description: Point your compass to a players last known location
   badges:
     description: Display badge information and manage badges
+  pvp:
+    description: Disables PvP protection
 
 permissions:
   core.command.core:

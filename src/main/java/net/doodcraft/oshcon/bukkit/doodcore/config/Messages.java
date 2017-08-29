@@ -5,7 +5,6 @@ import com.projectkorra.projectkorra.Element;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
-import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
@@ -35,13 +34,13 @@ public class Messages {
     }
 
     public static String getHover(CorePlayer cPlayer) {
-        StringBuilder line = new StringBuilder("§fTime: §7<time>\n§fName: §7<name>\n§fGroup: §7<roleprefix><role>");
+        StringBuilder line = new StringBuilder("§7Time: §7<time>\n§7Name: §7<name>\n§7Role: §7<roleprefix><role>");
 
         if (Compatibility.isHooked("ProjectKorra")) {
             try {
                 List<Element> elements = BendingPlayer.getBendingPlayer(cPlayer.getPlayer()).getElements();
                 if (elements.size() >= 1) {
-                    line.append("\n§fElement: §7<element>");
+                    line.append("\n§7Element: §7<element>");
                 }
             } catch (Exception ignored) {
             }
@@ -51,14 +50,19 @@ public class Messages {
             if (DiscordManager.client.isLoggedIn()) {
                 if (cPlayer.getDiscordId() != 0L) {
                     if (DiscordManager.client.getUserByID(cPlayer.getDiscordId()) != null) {
-                        line.append("\n§fDiscord: §7<roleprefix>@<discordname>#<discorddiscriminator>");
+                        line.append("\n§7Discord: §7<roleprefix>@<discordname>#<discorddiscriminator>");
                     }
                 }
             }
         }
 
+        int pKills = cPlayer.getPlayerKills().size();
+        if (pKills > 0) {
+            line.append("\n§7Players Killed: §c").append(pKills);
+        }
+
         if (cPlayer.getBadges().size() > 0) {
-            line.append("\n§fBadges:");
+            line.append("\n§7Badges:");
             for (Badge b : cPlayer.getBadges()) {
                 line.append("\n§7  - ").append(b.getFriendlyName());
             }
@@ -81,6 +85,7 @@ public class Messages {
         // VAULT
         line = line.replaceAll("<role>", PlayerMethods.getPrimaryGroup(cPlayer.getPlayer()));
         line = line.replaceAll("<roleprefix>", PlayerMethods.getPlayerPrefix(cPlayer.getPlayer()));
+        line = line.replaceAll("<chatprefix>", PlayerMethods.getChatPrefix(cPlayer.getPlayer()));
 
         // PROJECTKORRA
         if (Compatibility.isHooked("ProjectKorra")) {

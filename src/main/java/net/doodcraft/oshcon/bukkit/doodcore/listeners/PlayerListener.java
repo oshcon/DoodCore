@@ -4,7 +4,6 @@ import at.pcgamingfreaks.MarriageMaster.Bukkit.Commands.MarryChat;
 import at.pcgamingfreaks.MarriageMaster.Bukkit.MarriageMaster;
 import com.gmail.nossr50.api.ChatAPI;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
-import net.doodcraft.oshcon.bukkit.doodcore.commands.BackCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
@@ -23,7 +22,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +35,7 @@ public class PlayerListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerMethods.loadCorePlayer(player);
-        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 100L, 40L);
+        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 100L, 20L);
         event.setJoinMessage(null);
     }
 
@@ -174,7 +172,9 @@ public class PlayerListener implements Listener {
 
         CorePlayer cPlayer = CorePlayer.getPlayers().get(event.getPlayer().getUniqueId());
         if (cPlayer != null) {
-            cPlayer.setAfkStatus(false, "Using commands/chatting");
+            if (!cPlayer.isVanished()) {
+                cPlayer.setAfkStatus(false, "Using commands/chatting");
+            }
         }
     }
 

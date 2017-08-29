@@ -8,7 +8,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -143,7 +142,7 @@ public class PvPLogger implements Listener {
                 CorePlayer cPlayerAggressor = CorePlayer.getPlayers().get(aggressor.getUniqueId());
 
                 if (cPlayerVictim != null) {
-                    if (cPlayerVictim.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
+                    if (cPlayerVictim.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayerVictim.getWarnedPVPExpiration()) {
                         event.setCancelled(true);
                         int timeLeft = Math.toIntExact(((Settings.pvpProtection * 1000) - cPlayerVictim.getCurrentActiveTime())/1000);
                         aggressor.sendMessage("§cThey still have new player PvP protection. §8[§e" + timeLeft + "s§8]");
@@ -152,10 +151,11 @@ public class PvPLogger implements Listener {
                 }
 
                 if (cPlayerAggressor != null) {
-                    if (cPlayerAggressor.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
+                    if (cPlayerAggressor.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayerAggressor.getWarnedPVPExpiration()) {
                         event.setCancelled(true);
                         int timeLeft = Math.toIntExact((Settings.pvpProtection * 1000) - cPlayerAggressor.getCurrentActiveTime());
                         aggressor.sendMessage("§cYou cannot PvP during new player protection. §8[§e" + timeLeft + "s§8]");
+                        aggressor.sendMessage("§7You can irreversibly disable this protection using §b/pvp");
                         return;
                     }
                 }

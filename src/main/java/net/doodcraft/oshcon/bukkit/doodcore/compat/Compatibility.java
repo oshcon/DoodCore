@@ -20,6 +20,10 @@ public class Compatibility {
             Vault.setupPermissions();
         }
 
+        if (hookPlugin("Authme", "5.3.2", "5.3.2")) {
+            StaticMethods.log("&bHooked into Authme v" + getPlugin("Authme").getDescription().getVersion() + "!");
+        }
+
         if (hookPlugin("SuperVanish", "5.8.4", "5.9.7")) {
             StaticMethods.log("&bHooked into SuperVanish v" + getPlugin("SuperVanish").getDescription().getVersion() + "!");
         }

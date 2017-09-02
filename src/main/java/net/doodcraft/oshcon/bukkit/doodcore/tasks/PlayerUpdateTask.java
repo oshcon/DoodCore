@@ -1,5 +1,6 @@
 package net.doodcraft.oshcon.bukkit.doodcore.tasks;
 
+import fr.xephi.authme.api.v3.AuthMeApi;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
@@ -27,6 +28,11 @@ public class PlayerUpdateTask extends BukkitRunnable {
         if (Bukkit.getPlayer(this.uuid) != null) {
             if (CorePlayer.getPlayers().containsKey(this.uuid)) {
                 CorePlayer cPlayer = CorePlayer.getPlayers().get(this.uuid);
+
+                if (!AuthMeApi.getInstance().isAuthenticated(cPlayer.getPlayer())) {
+                    return;
+                }
+
                 Long l = cPlayer.getCurrentActiveTime();
 
                 // check pvp expiration

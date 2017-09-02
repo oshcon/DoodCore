@@ -1,7 +1,7 @@
 name: ${project.artifactId}
 version: ${project.version}
 authors: [oshcon]
-softdepend: [Votifier, Vault, Essentials, SuperVanish, PremiumVanish, ProjectKorra, MarriageMaster, mcMMO]
+softdepend: [Authme, Votifier, Vault, Essentials, SuperVanish, PremiumVanish, ProjectKorra, MarriageMaster, mcMMO]
 website: http://doodcraft.net/
 main: net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin
 
@@ -60,6 +60,8 @@ commands:
     description: Display badge information and manage badges
   pvp:
     description: Disables PvP protection
+  head:
+    description: Player head spawning
 
 permissions:
   core.command.core:

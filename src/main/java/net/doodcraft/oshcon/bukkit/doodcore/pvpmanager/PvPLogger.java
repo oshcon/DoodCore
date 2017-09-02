@@ -231,6 +231,7 @@ public class PvPLogger implements Listener {
                 meta.setOwner(player.getName());
                 meta.setDisplayName("§r" + player.getName() + "'s Head");
                 item.setItemMeta(meta);
+                item.setDurability((short) 3);
                 player.getWorld().dropItemNaturally(player.getLocation(), item);
                 Bukkit.broadcastMessage("§3" + cKiller.getName() + " beheaded " + player.getName() + "! :o");
             }

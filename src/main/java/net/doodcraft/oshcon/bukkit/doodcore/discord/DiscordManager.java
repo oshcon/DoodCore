@@ -525,6 +525,18 @@ public class DiscordManager {
     public static void autoRankVeteran(CorePlayer cPlayer) {
         if (cPlayer.getCurrentActiveTime() >= Settings.veteranTime * 1000) {
             // They need to be a Veteran now.
+
+            if (!cPlayer.getCongratulatedVeteranRank()) {
+                cPlayer.getPlayer().sendMessage("§6You've auto-ranked to §2§lVeteran§6, " + cPlayer.getName() + "! Congratulations!");
+                cPlayer.getPlayer().sendMessage("§6In-game perks you've unlocked:");
+                cPlayer.getPlayer().sendMessage("  §8- §aHome limit increase: §72 -> 6");
+                cPlayer.getPlayer().sendMessage("  §8- §aEnderPad limit increase: §72 -> 10");
+                cPlayer.getPlayer().sendMessage("  §8- §aNickname setting. §8[§b/nick§8]");
+                cPlayer.getPlayer().sendMessage("  §8- §aChest locking in unclaimed territory.");
+                cPlayer.getPlayer().sendMessage("  §8- §aAccess to marriage commands. §8[§b/marry§8]");
+                cPlayer.setCongratulatedVeteranRank(true);
+            }
+
             // Update their role on Discord. Let syncRank do the rest.
             // This requires their account to be synced to discord. Check if they are ignoring reminders.
             if (!Compatibility.isHooked("Vault") || Vault.permission == null || !Vault.permission.isEnabled()) {

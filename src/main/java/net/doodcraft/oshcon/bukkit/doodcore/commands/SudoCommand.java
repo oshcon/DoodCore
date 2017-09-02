@@ -35,8 +35,8 @@ public class SudoCommand implements CommandExecutor {
                                 List<String> msg = new ArrayList<>(Arrays.asList(args));
                                 msg.remove(args[0]);
 
-                                if (Bukkit.getPlayer(args[0]) != null) {
-                                    Bukkit.getPlayer(args[0]).chat(Joiner.on(" ").join(msg));
+                                if (CorePlayer.getPlayer(args[0]) != null) {
+                                    CorePlayer.getPlayer(args[0]).chat(Joiner.on(" ").join(msg));
                                 }
 
                                 if (args[0].equalsIgnoreCase("*")) {
@@ -61,8 +61,8 @@ public class SudoCommand implements CommandExecutor {
                             List<String> msg = new ArrayList<>(Arrays.asList(args));
                             msg.remove(args[0]);
 
-                            if (Bukkit.getPlayer(args[0]) != null) {
-                                Bukkit.getPlayer(args[0]).chat(Joiner.on(" ").join(msg));
+                            if (CorePlayer.getPlayer(args[0]) != null) {
+                                CorePlayer.getPlayer(args[0]).chat(Joiner.on(" ").join(msg));
                             }
 
                             if (args[0].equalsIgnoreCase("*")) {

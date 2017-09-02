@@ -1,6 +1,7 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import com.google.common.base.Joiner;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.TpaTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
@@ -51,8 +52,8 @@ public class TpdenyCommand implements CommandExecutor {
                     if (args.length == 1) {
                         String name = args[0];
                         for (UUID u : requestingTpa) {
-                            if (Bukkit.getPlayer(name) != null) {
-                                if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
+                            if (CorePlayer.getPlayer(name) != null) {
+                                if (CorePlayer.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
                                     player.sendMessage("§7You denied " + requester.getName() + "'s tpa request.");
                                     requester.sendMessage("§7" + player.getName() + " denied your tpa request.");
@@ -62,8 +63,8 @@ public class TpdenyCommand implements CommandExecutor {
                             }
                         }
                         for (UUID u : requestingTpahere) {
-                            if (Bukkit.getPlayer(name) != null) {
-                                if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
+                            if (CorePlayer.getPlayer(name) != null) {
+                                if (CorePlayer.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
                                     player.sendMessage("§7You denied " + requester.getName() + "'s tpahere request.");
                                     requester.sendMessage("§7" + player.getName() + " denied your tpahere request.");

@@ -1,9 +1,11 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import com.google.common.base.Joiner;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.TpaTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.WarmupTeleportTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
+import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -53,8 +55,8 @@ public class TpacceptCommand implements CommandExecutor {
                     if (args.length == 1) {
                         String name = args[0];
                         for (UUID u : requestingTpa) {
-                            if (Bukkit.getPlayer(name) != null) {
-                                if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
+                            if (CorePlayer.getPlayer(name) != null) {
+                                if (CorePlayer.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
                                     requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport you...");
                                     new WarmupTeleportTask(requester, player.getLocation(), player, "§7Teleported you to " + player.getName() + ".", "tpaccept", 5000);
@@ -64,8 +66,8 @@ public class TpacceptCommand implements CommandExecutor {
                             }
                         }
                         for (UUID u : requestingTpahere) {
-                            if (Bukkit.getPlayer(name) != null) {
-                                if (Bukkit.getPlayer(name).getUniqueId().equals(u)) {
+                            if (CorePlayer.getPlayer(name) != null) {
+                                if (CorePlayer.getPlayer(name).getUniqueId().equals(u)) {
                                     Player requester = Bukkit.getPlayer(u);
                                     requester.sendMessage("§7" + player.getName() + " accepted your request. Preparing to teleport them...");
                                     new WarmupTeleportTask(player, requester.getLocation(), requester, "§7Teleported you to " + requester.getName() + ".", "tpaccept", 5000);

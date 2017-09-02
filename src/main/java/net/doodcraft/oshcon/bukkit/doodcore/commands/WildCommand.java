@@ -6,6 +6,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.tasks.WildernessSearchTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
+import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,6 +23,7 @@ public class WildCommand implements CommandExecutor {
                 if (!PlayerMethods.hasPermission(player, "core.command.wild", true)) {
                     return false;
                 }
+
 
                 if (WarmupTeleportTask.teleporting.contains(player.getUniqueId())) {
                     player.sendMessage(StaticMethods.addColor("&cYou are already being teleported, please wait."));

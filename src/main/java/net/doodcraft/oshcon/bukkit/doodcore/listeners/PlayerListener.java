@@ -4,6 +4,7 @@ import at.pcgamingfreaks.MarriageMaster.Bukkit.Commands.MarryChat;
 import at.pcgamingfreaks.MarriageMaster.Bukkit.MarriageMaster;
 import com.gmail.nossr50.api.ChatAPI;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.commands.TrackCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
@@ -21,6 +22,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -35,7 +37,7 @@ public class PlayerListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         PlayerMethods.loadCorePlayer(player);
-        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 100L, 20L);
+        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 60L, 20L);
         event.setJoinMessage(null);
     }
 
@@ -46,65 +48,19 @@ public class PlayerListener implements Listener {
         if (cPlayer.isCurrentlyAfk()) {
             cPlayer.setAfkStatus(false, "Quitting");
         }
+        TrackCommand.resetCompass(player);
         event.setQuitMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7quit."));
         PlayerMethods.dumpCorePlayer(player);
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        CorePlayer cPlayer = CorePlayer.getPlayers().get(uuid);
-        String message = event.getMessage();
-
-        if (cPlayer != null) {
-            cPlayer.setAfkStatus(false, "");
-        }
-
-        event.getRecipients().clear();
-
-        if (Compatibility.isHooked("MarriageMaster")) {
-            MarryChat mc = new MarryChat((MarriageMaster) Compatibility.getPlugin("MarriageMaster"));
-            if (mc.pcl.contains(player)) {
-                return;
-            }
-        }
-
-        if (Compatibility.isHooked("mcMMO")) {
-            if (ChatAPI.isUsingPartyChat(player)) {
-                return;
-            }
-            if (ChatAPI.isUsingAdminChat(player)) {
-                return;
-            }
-        }
-
-        if (!event.isCancelled()) {
-            if (DiscordManager.toggled) {
-                if (DiscordManager.client != null) {
-                    // TODO: Allow @mentioning a user from in-game.
-                    DiscordManager.sendGameChat(player, StaticMethods.removeColor(message));
-                }
-            }
-
-            String msg;
-            if (player.hasPermission("core.chat.colors")) {
-                msg = StaticMethods.addColor(event.getMessage()).replaceAll("§k", "");
-            } else {
-                msg = StaticMethods.removeColor(event.getMessage());
-            }
-
-            DiscordManager.broadcastJson(player, msg);
-        }
-    }
-
     @EventHandler
-    public void onTeleport(PlayerTeleportEvent event) {
-        if (event.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.COMMAND) || event.getCause().equals(PlayerTeleportEvent.TeleportCause.UNKNOWN)) {
-            Block block = event.getTo().add(0, 1, 0).getBlock();
-            if (block != null) {
-                if (block.getType().isSolid() || block.getType().isOccluding()) {
-                    event.getPlayer().teleport(event.getTo().getWorld().getHighestBlockAt(event.getTo()).getLocation().add(0, 0.25, 0));
+    public void onPlace(BlockPlaceEvent event) {
+        ItemStack flare = event.getItemInHand();
+        if (flare.hasItemMeta()) {
+            if (flare.getItemMeta().hasDisplayName()) {
+                if (flare.getItemMeta().getDisplayName().equals("§c§lVote Flare")) {
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage("Vote flares cannot be used, yet.");
                 }
             }
         }
@@ -120,61 +76,6 @@ public class PlayerListener implements Listener {
         while (n <= 3) {
             event.setLine(n, StaticMethods.addColor(event.getLine(n)));
             n++;
-        }
-    }
-
-    @EventHandler
-    public void onCommand(PlayerCommandPreprocessEvent event) {
-
-        // I don't EVER want to see "magic" characters anywhere, ever again.
-        event.setMessage(event.getMessage().replaceAll("&k", ""));
-
-        String command = event.getMessage().split(" ")[0].toLowerCase().replaceAll("/", "");
-
-        if (PvPLogger.inCombat.containsKey(event.getPlayer().getUniqueId())) {
-            for (String c : PvPLogger.blockedCommands) {
-                if (command.equalsIgnoreCase(c)) {
-                    event.getPlayer().sendMessage(StaticMethods.addColor("&cYou cannot use that command during PvP."));
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-
-        // check cooldowns
-        if (!event.getPlayer().hasPermission("core.bypass.cooldowns")) {
-            if (CommandCooldowns.hasCooldown(event.getPlayer().getUniqueId(), command)) {
-                if (CommandCooldowns.getCooldown(event.getPlayer().getUniqueId(), command) > 0L) {
-                    event.getPlayer().sendMessage(StaticMethods.addColor("&cYou must wait to use this command again. &8[&e" + ((int) Math.ceil(CommandCooldowns.getCooldown(event.getPlayer().getUniqueId(), command.replaceAll("/", "")) / 1000)) + "s&8]"));
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-
-        CommandCooldowns.removeCooldown(event.getPlayer().getUniqueId(), command);
-
-        if (command.equalsIgnoreCase("afk")) {
-            return;
-        }
-
-        if (command.equalsIgnoreCase("mytime")) {
-            return;
-        }
-
-        if (command.equalsIgnoreCase("vote")) {
-            return;
-        }
-
-        if (command.equalsIgnoreCase("vanish")) {
-            return;
-        }
-
-        CorePlayer cPlayer = CorePlayer.getPlayers().get(event.getPlayer().getUniqueId());
-        if (cPlayer != null) {
-            if (!cPlayer.isVanished()) {
-                cPlayer.setAfkStatus(false, "Using commands/chatting");
-            }
         }
     }
 
@@ -203,37 +104,39 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        // TODO: Clean up.
-        if (player.getInventory().getItemInMainHand() != null) {
-            if (player.getInventory().getItemInMainHand().hasItemMeta()) {
-                if (StaticMethods.removeColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()).equalsIgnoreCase("unsitter")) {
-                    if (player.hasPermission("core.temp.unsit")) {
-                        Entity entity = event.getRightClicked();
-                        if (entity instanceof Tameable) {
-                            Tameable tameable = (Tameable) entity;
-                            if (tameable.isTamed()) {
-                                if (entity instanceof Wolf) {
-                                    Wolf wolf = (Wolf) entity;
-                                    if (wolf.isSitting()) {
-                                        wolf.setSitting(false);
-                                    } else {
-                                        wolf.setSitting(true);
-                                    }
-                                }
-                                if (entity instanceof Ocelot) {
-                                    Ocelot wolf = (Ocelot) entity;
-                                    if (wolf.isSitting()) {
-                                        wolf.setSitting(false);
-                                    } else {
-                                        wolf.setSitting(true);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        // TODO: Clean up.
+//        if (player.getInventory().getItemInMainHand() != null) {
+//            if (player.getInventory().getItemInMainHand().hasItemMeta()) {
+//                if (player.getInventory().getItemInMainHand().getItemMeta().hasDisplayName()) {
+//                    if (StaticMethods.removeColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()).equalsIgnoreCase("unsitter")) {
+//                        if (player.hasPermission("core.temp.unsit")) {
+//                            Entity entity = event.getRightClicked();
+//                            if (entity instanceof Tameable) {
+//                                Tameable tameable = (Tameable) entity;
+//                                if (tameable.isTamed()) {
+//                                    if (entity instanceof Wolf) {
+//                                        Wolf wolf = (Wolf) entity;
+//                                        if (wolf.isSitting()) {
+//                                            wolf.setSitting(false);
+//                                        } else {
+//                                            wolf.setSitting(true);
+//                                        }
+//                                    }
+//                                    if (entity instanceof Ocelot) {
+//                                        Ocelot wolf = (Ocelot) entity;
+//                                        if (wolf.isSitting()) {
+//                                            wolf.setSitting(false);
+//                                        } else {
+//                                            wolf.setSitting(true);
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
 

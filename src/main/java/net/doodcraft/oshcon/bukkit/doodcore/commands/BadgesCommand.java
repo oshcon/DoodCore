@@ -42,8 +42,8 @@ public class BadgesCommand implements CommandExecutor {
                     if (player.hasPermission("core.command.badges.admin")) {
                         // Display another players badges
                         if (args[0].equalsIgnoreCase("display")) {
-                            if (Bukkit.getPlayer(args[1]) != null) {
-                                CorePlayer target = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[1]).getUniqueId());
+                            if (CorePlayer.getPlayer(args[1]) != null) {
+                                CorePlayer target = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[1]).getUniqueId());
                                 if (target.getBadges().size() > 0) {
                                     player.sendMessage("§7" + target.getName() + "'s Badges: ");
                                     for (Badge b : target.getBadges()) {
@@ -62,8 +62,8 @@ public class BadgesCommand implements CommandExecutor {
                         }
                         // Add
                         if (args[0].equalsIgnoreCase("add")) {
-                            if (Bukkit.getPlayer(args[1]) != null) {
-                                CorePlayer target = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[1]).getUniqueId());
+                            if (CorePlayer.getPlayer(args[1]) != null) {
+                                CorePlayer target = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[1]).getUniqueId());
                                 if (BadgeType.isBadgeType(args[2].toUpperCase())) {
                                     Badge badge = new Badge(args[2].toUpperCase());
                                     if (!target.hasBadge(badge)) {
@@ -85,8 +85,8 @@ public class BadgesCommand implements CommandExecutor {
                         }
                         // Remove
                         if (args[0].equalsIgnoreCase("remove")) {
-                            if (Bukkit.getPlayer(args[1]) != null) {
-                                CorePlayer target = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[1]).getUniqueId());
+                            if (CorePlayer.getPlayer(args[1]) != null) {
+                                CorePlayer target = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[1]).getUniqueId());
                                 if (BadgeType.isBadgeType(args[2].toUpperCase())) {
                                     Badge badge = new Badge(args[2].toUpperCase());
                                     if (target.hasBadge(badge)) {

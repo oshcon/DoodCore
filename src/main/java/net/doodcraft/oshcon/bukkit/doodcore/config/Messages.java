@@ -34,17 +34,7 @@ public class Messages {
     }
 
     public static String getHover(CorePlayer cPlayer) {
-        StringBuilder line = new StringBuilder("§7Time: §7<time>\n§7Name: §7<name>\n§7Role: §7<roleprefix><role>");
-
-        if (Compatibility.isHooked("ProjectKorra")) {
-            try {
-                List<Element> elements = BendingPlayer.getBendingPlayer(cPlayer.getPlayer()).getElements();
-                if (elements.size() >= 1) {
-                    line.append("\n§7Element: §7<element>");
-                }
-            } catch (Exception ignored) {
-            }
-        }
+        StringBuilder line = new StringBuilder("§7Time: §7<time>\n§7Name: §7<name>\n§7Role: §7<roleprefix><role>\n§7First Join: §2<firstjoin>");
 
         if (DiscordManager.client != null) {
             if (DiscordManager.client.isLoggedIn()) {
@@ -53,6 +43,16 @@ public class Messages {
                         line.append("\n§7Discord: §7<roleprefix>@<discordname>#<discorddiscriminator>");
                     }
                 }
+            }
+        }
+
+        if (Compatibility.isHooked("ProjectKorra")) {
+            try {
+                List<Element> elements = BendingPlayer.getBendingPlayer(cPlayer.getPlayer()).getElements();
+                if (elements.size() >= 1) {
+                    line.append("\n§7Element: §7<element>");
+                }
+            } catch (Exception ignored) {
             }
         }
 
@@ -81,6 +81,8 @@ public class Messages {
         line = line.replaceAll("<time>", StaticMethods.getSimpleTimeStamp());
         line = line.replaceAll("<totalactive>", String.valueOf(TimeUnit.MILLISECONDS.toMinutes(cPlayer.getCurrentActiveTime())));
         line = line.replaceAll("<totalafk>", String.valueOf(TimeUnit.MILLISECONDS.toMinutes(cPlayer.getCurrentAfkTime())));
+        line = line.replaceAll("<firstjoin>", StaticMethods.getTimeStamp(cPlayer.getPlayer().getFirstPlayed()));
+
 
         // VAULT
         line = line.replaceAll("<role>", PlayerMethods.getPrimaryGroup(cPlayer.getPlayer()));

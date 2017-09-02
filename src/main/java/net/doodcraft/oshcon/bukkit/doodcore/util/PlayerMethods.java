@@ -79,7 +79,7 @@ public class PlayerMethods {
                 if (pGroup.equalsIgnoreCase("Bouncer")) {
                     return "§8[§3Bouncer§8]§r";
                 }
-                if (pGroup.equalsIgnoreCase("Admin")) {
+                if (pGroup.equalsIgnoreCase("Administrator")) {
                     return "§8[§5Admin§8]§r";
                 }
             } catch (Exception ex) {

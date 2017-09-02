@@ -34,7 +34,9 @@ public class CorePlayer {
 
     public static Map<UUID, Long> activeTimes = new ConcurrentHashMap<>();
     public static Map<UUID, Long> afkTimes = new ConcurrentHashMap<>();
+
     private static Map<UUID, CorePlayer> players = new ConcurrentHashMap<>();
+    public static Map<String, String> names = new ConcurrentHashMap<>();
 
     public static Map<UUID, CorePlayer> getPlayers() {
         return players;
@@ -42,6 +44,11 @@ public class CorePlayer {
 
     public static void addPlayer(CorePlayer cPlayer) {
         getPlayers().put(cPlayer.getUniqueId(), cPlayer);
+        cacheName(cPlayer);
+    }
+
+    public static void cacheName(CorePlayer cPlayer) {
+        names.put(cPlayer.getName(), cPlayer.getNick());
     }
 
     public static void removePlayer(CorePlayer cPlayer) {
@@ -117,9 +124,11 @@ public class CorePlayer {
     private Long lastQuit;
     private String lastLocation;
     private int votes;
+    private int flares;
     private Long lastVote;
     private Boolean thankedForOfflineVote;
     private Boolean warnedPVPExpiration;
+    private Boolean congratulatedVeteranRank;
     private List<Badge> badges;
     private Map<String, Integer> kills;
     private Long lastPayout;
@@ -146,9 +155,11 @@ public class CorePlayer {
             this.lastLocation = "null";
         }
         this.votes = 0;
+        this.flares = 0;
         this.lastVote = 0L;
         this.thankedForOfflineVote = true;
         this.warnedPVPExpiration = false;
+        this.congratulatedVeteranRank = false;
         this.badges = new ArrayList<>();
         this.kills = new ConcurrentHashMap<>();
         this.lastPayout = 0L;
@@ -190,9 +201,11 @@ public class CorePlayer {
         data.set("LastQuit", getLastQuit());
         data.set("LastLocation", getLastLocation());
         data.set("Voting.Total", getTotalVotes());
+        data.set("Voting.FlaresGiven", getTotalFlaresGiven());
         data.set("Voting.LastVote", getLastVote());
         data.set("Voting.Thanked", getThankedForOfflineVote());
         data.set("Warned.PvPProtectionExpired", getWarnedPVPExpiration());
+        data.set("Warned.VeteranRankup", getCongratulatedVeteranRank());
         data.set("LastPayout", getLastPayout());
 
         if (data.get("Homes") != null) {
@@ -244,9 +257,11 @@ public class CorePlayer {
             setLastQuit(Long.valueOf(data.getString("LastQuit")));
             setLastLocation(data.getString("LastLocation"));
             setTotalVotes(data.getInteger("Voting.Total"));
+            setTotalFlaresGiven(data.getInteger("Voting.FlaresGiven"));
             setLastVote(Long.valueOf(data.getString("Voting.LastVote")));
             setThankedForOfflineVote(data.getBoolean("Voting.Thanked"));
             setWarnedPVPExpiration(data.getBoolean("Warned.PvPProtectionExpired"));
+            setCongratulatedVeteranRank(data.getBoolean("Warned.VeteranRankup"));
 
             if (data.get("LastPayout") == null) {
                 setLastPayout(0L);
@@ -294,9 +309,9 @@ public class CorePlayer {
 
         // Update tablist name.
         if (this.afkStatus) {
-            getPlayer().setPlayerListName(StaticMethods.addColor("&7[AFK] " + PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
+            getPlayer().setPlayerListName(StaticMethods.addColor("&7[AFK] " + PlayerMethods.getPlayerPrefix(getPlayer()) + this.nick));
         } else {
-            getPlayer().setPlayerListName(StaticMethods.addColor(PlayerMethods.getPlayerPrefix(getPlayer()) + this.name));
+            getPlayer().setPlayerListName(StaticMethods.addColor(PlayerMethods.getPlayerPrefix(getPlayer()) + this.nick));
         }
 
         // Refresh the CorePlayer list.
@@ -622,6 +637,15 @@ public class CorePlayer {
         reload();
     }
 
+    public Integer getTotalFlaresGiven() {
+        return this.flares;
+    }
+
+    public void setTotalFlaresGiven(int amount) {
+        this.flares = amount;
+        reload();
+    }
+
     // VOTING LAST VOTE
     public Long getLastVote() {
         return this.lastVote;
@@ -649,6 +673,16 @@ public class CorePlayer {
 
     public void setWarnedPVPExpiration(Boolean bool) {
         this.warnedPVPExpiration = bool;
+        reload();
+    }
+
+    // CONGRATULATED ON RANKUP TO VETERAN
+    public Boolean getCongratulatedVeteranRank() {
+        return this.congratulatedVeteranRank;
+    }
+
+    public void setCongratulatedVeteranRank(Boolean bool) {
+        this.congratulatedVeteranRank = bool;
         reload();
     }
 
@@ -739,7 +773,9 @@ public class CorePlayer {
     // PROJECTKORRA
     public List<Element> getElements() {
         if (Compatibility.isHooked("ProjectKorra")) {
-            return BendingPlayer.getBendingPlayer(this.getPlayer()).getElements();
+            if (BendingPlayer.getBendingPlayer(this.getPlayer()) != null) {
+                return BendingPlayer.getBendingPlayer(this.getPlayer()).getElements();
+            }
         }
 
         // No elements, be sure to do a null/empty check.
@@ -763,4 +799,17 @@ public class CorePlayer {
     }
 
     // UTIL
+    public static Player getPlayer(String name) {
+
+        for (CorePlayer cPlayer : getPlayers().values()) {
+            if (name.equalsIgnoreCase(cPlayer.getName())) {
+                return cPlayer.getPlayer();
+            }
+            if (name.equalsIgnoreCase(StaticMethods.removeColor(cPlayer.getNick()))) {
+                return cPlayer.getPlayer();
+            }
+        }
+
+        return Bukkit.getPlayer(name);
+    }
 }

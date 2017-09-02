@@ -112,8 +112,8 @@ public class CoreCommand implements CommandExecutor {
 
                 if (args[0].equalsIgnoreCase("listkills")) {
                     if (args.length > 1) {
-                        if (Bukkit.getPlayer(args[2]) != null) {
-                            CorePlayer killer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[2]).getUniqueId());
+                        if (CorePlayer.getPlayer(args[2]) != null) {
+                            CorePlayer killer = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[2]).getUniqueId());
                             if (killer.getKills().size() > 0) {
                                 sender.sendMessage(killer.getName() + "'s kills:");
                                 for (String kill : killer.getKills().keySet()) {
@@ -197,8 +197,8 @@ public class CoreCommand implements CommandExecutor {
 
                 if (args[0].equalsIgnoreCase("listkills")) {
                     if (args.length > 1) {
-                        if (Bukkit.getPlayer(args[2]) != null) {
-                            CorePlayer killer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[2]).getUniqueId());
+                        if (CorePlayer.getPlayer(args[2]) != null) {
+                            CorePlayer killer = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[2]).getUniqueId());
                             if (killer.getKills().size() > 0) {
                                 sender.sendMessage(killer.getName() + "'s kills:");
                                 for (String kill : killer.getKills().keySet()) {

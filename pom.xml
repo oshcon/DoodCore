@@ -215,5 +215,13 @@
             <version>2.3.4</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Towny -->
+        <dependency>
+            <groupId>com.palmergames</groupId>
+            <artifactId>Towny</artifactId>
+            <version>LATEST</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/Towny.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>

@@ -5,19 +5,25 @@ import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeListener;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.*;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
+import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.entitymanagement.EntityManagement;
+import net.doodcraft.oshcon.bukkit.doodcore.listeners.ChatListener;
+import net.doodcraft.oshcon.bukkit.doodcore.listeners.EntityListener;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.VotifierListener;
 import net.doodcraft.oshcon.bukkit.doodcore.pvpmanager.PvPLogger;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
+import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.Random;
 
 public class DoodCorePlugin extends JavaPlugin {
@@ -36,6 +42,7 @@ public class DoodCorePlugin extends JavaPlugin {
 
         setExecutors();
         registerListeners();
+        cacheAllNames();
 
         Settings.addConfigDefaults();
         EntityManagement.startItemPurgeTask();
@@ -99,6 +106,7 @@ public class DoodCorePlugin extends JavaPlugin {
         getCommand("track").setExecutor(new TrackCommand());
         getCommand("badges").setExecutor(new BadgesCommand());
         getCommand("pvp").setExecutor(new PvPCommand());
+        getCommand("head").setExecutor(new HeadCommand());
     }
 
     public void registerListeners() {
@@ -106,6 +114,8 @@ public class DoodCorePlugin extends JavaPlugin {
         registerEvents(plugin, new GivePetCommand());
         registerEvents(plugin, new PvPLogger());
         registerEvents(plugin, new BadgeListener());
+        registerEvents(plugin, new ChatListener());
+        registerEvents(plugin, new EntityListener());
 
         if (Compatibility.isHooked("Votifier")) {
             registerEvents(plugin, new VotifierListener());
@@ -115,6 +125,21 @@ public class DoodCorePlugin extends JavaPlugin {
     public static void registerEvents(Plugin plugin, Listener... listeners) {
         for (Listener listener : listeners) {
             Bukkit.getServer().getPluginManager().registerEvents(listener, plugin);
+        }
+    }
+
+    public static void cacheAllNames() {
+        File directory = new File(plugin.getDataFolder() + File.separator + "data");
+        File[] files = directory.listFiles();
+
+        if (files != null) {
+            for (File f : files) {
+                Configuration cData = new Configuration(plugin.getDataFolder() + File.separator + "data" + File.separator + f.getName());
+                if (cData.get("Name") != null) {
+                    StaticMethods.log("Caching: " + f.getName() + " : " + cData.getString("Name") + " : " + cData.getString("Nick"));
+                    CorePlayer.names.put(cData.getString("Name"), cData.getString("Nick"));
+                }
+            }
         }
     }
 }

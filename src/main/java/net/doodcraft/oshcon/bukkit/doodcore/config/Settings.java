@@ -42,8 +42,8 @@ public class Settings {
         discordChannel = (Long) config.get("Discord.Channel");
         purgeItems = config.getBoolean("ClearLag.PurgeItems");
         wildRadius = config.getInteger("WildCommand.Radius");
-        pvpProtection = (Long) config.get("Time.PvPProtection");
-        veteranTime = (Long) config.get("Time.VeteranAutoRank");
+        pvpProtection = Long.valueOf(config.getString("Time.PvPProtection"));
+        veteranTime = Long.valueOf(config.getString("Time.VeteranAutoRank"));
     }
 
     public static void reload() {

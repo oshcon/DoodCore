@@ -167,3 +167,6 @@ permissions:
   core.command.badge.admin:
     description: Manage player badges
     default: OP
+  core.command.head:
+    description: Spawn player heads
+    default: OP

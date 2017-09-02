@@ -28,8 +28,8 @@ public class MyTimeCommand implements CommandExecutor {
                     if (player.hasPermission("core.command.mytime.others")) {
 
                         // Check for online player first.
-                        if (Bukkit.getPlayer(args[0]) != null) {
-                            CorePlayer cPlayer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[0]).getUniqueId());
+                        if (CorePlayer.getPlayer(args[0]) != null) {
+                            CorePlayer cPlayer = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[0]).getUniqueId());
 
                             player.sendMessage("§7" + cPlayer.getName() + "'s Time: ");
                             player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));
@@ -40,12 +40,12 @@ public class MyTimeCommand implements CommandExecutor {
                             } catch (Exception ex) {
                                 player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
                             }
-                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000) && !cPlayer.getWarnedPVPExpiration()) {
+                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
                                 player.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
                                 player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
                             }
-                            if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000)) {
+                            if (cPlayer.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayer.getWarnedPVPExpiration()) {
                                 player.sendMessage("§8:: §7PvP Protection: §3" + StaticMethods.getDurationBreakdown((Settings.pvpProtection * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
                                 player.sendMessage("§8:: §7PvP Protection: §8[§cEXPIRED§8]");
@@ -100,8 +100,8 @@ public class MyTimeCommand implements CommandExecutor {
             } else {
                 if (args.length >= 1) {
                     // Check for online player first.
-                    if (Bukkit.getPlayer(args[0]) != null) {
-                        CorePlayer cPlayer = CorePlayer.getPlayers().get(Bukkit.getPlayer(args[0]).getUniqueId());
+                    if (CorePlayer.getPlayer(args[0]) != null) {
+                        CorePlayer cPlayer = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[0]).getUniqueId());
 
                         sender.sendMessage("§7" + cPlayer.getName() + "'s Time: ");
                         sender.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(cPlayer.getCurrentActiveTime() + cPlayer.getCurrentAfkTime()));

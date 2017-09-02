@@ -1,7 +1,9 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.TpaTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
+import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -51,19 +53,19 @@ public class TpaCommand implements CommandExecutor {
                     return false;
                 }
 
-                if (!Bukkit.getPlayer(args[0]).isOnline()) {
+                if (CorePlayer.getPlayer(args[0]) == null) {
                     sender.sendMessage("§cThat player could not be found.");
                     return false;
                 }
 
                 // player blah sent you a tpa request
-                Bukkit.getPlayer(args[0]).sendMessage("§7" + sender.getName() + " would like to teleport to you.\n  §7Accept with §b/tpaccept\n  §7Deny with §b/tpdeny");
+                CorePlayer.getPlayer(args[0]).sendMessage("§7" + sender.getName() + " would like to teleport to you.\n  §7Accept with §b/tpaccept\n  §7Deny with §b/tpdeny");
 
                 // you sent player blah a tpa request
-                sender.sendMessage("§7You sent " + Bukkit.getPlayer(args[0]).getName() + " a tpa request.");
+                sender.sendMessage("§7You sent " + CorePlayer.getPlayer(args[0]).getName() + " a tpa request.");
 
                 // add them to the maps
-                TpaCommand.requesting.put(((Player) sender).getUniqueId(), Bukkit.getPlayer(args[0]).getUniqueId());
+                TpaCommand.requesting.put(((Player) sender).getUniqueId(), CorePlayer.getPlayer(args[0]).getUniqueId());
 
                 // new tpa timeout task
                 new TpaTimeoutTask(player.getUniqueId(), 600L);

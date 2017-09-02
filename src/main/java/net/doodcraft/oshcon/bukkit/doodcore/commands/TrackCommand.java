@@ -1,6 +1,8 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.tasks.CompassResetTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -40,21 +42,21 @@ public class TrackCommand implements CommandExecutor {
 
                 if (args.length == 1) {
                     if (hasEnoughQuartz(player)) {
-                        if (Bukkit.getPlayer(args[0]) != null) {
-                            if (Bukkit.getPlayer(args[0]).hasPermission("core.command.track.untrackable")) {
+                        if (CorePlayer.getPlayer(args[0]) != null) {
+                            if (CorePlayer.getPlayer(args[0]).hasPermission("core.command.track.untrackable")) {
                                 player.sendMessage("§cThat player cannot be tracked right now.");
                                 return false;
                             } else {
                                 if (hasCompass(player)) {
                                     // point compass to a location within 50 blocks.
                                     // remove quartz
-                                    if (player.getLocation().getWorld().equals(Bukkit.getPlayer(args[0]).getLocation().getWorld())) {
+                                    if (player.getLocation().getWorld().equals(CorePlayer.getPlayer(args[0]).getLocation().getWorld())) {
                                         double xOffset = DoodCorePlugin.random.nextInt(100) - 50;
                                         double zOffset = DoodCorePlugin.random.nextInt(100) - 50;
-                                        player.setCompassTarget(Bukkit.getPlayer(args[0]).getLocation().add(xOffset, 0, zOffset));
+                                        player.setCompassTarget(CorePlayer.getPlayer(args[0]).getLocation().add(xOffset, 0, zOffset));
                                         removeQuartz(player);
-                                        player.sendMessage("§aYour compass is now pointing towards their general location.");
-                                        player.sendMessage("§aThe location is not exact, good luck.");
+                                        new CompassResetTask(player).runTaskLater(DoodCorePlugin.plugin, 90 * 20);
+                                        player.sendMessage("§aYour compass is now pointing towards their general location for ninety seconds.");
                                         return false;
                                     } else {
                                         player.sendMessage("§cThat player cannot be tracked right now.");
@@ -70,7 +72,7 @@ public class TrackCommand implements CommandExecutor {
                             return false;
                         }
                     } else {
-                        player.sendMessage("§cThis ability requires 64 quartz crystals to function.");
+                        player.sendMessage("§cThis ability requires an ender eye to function.");
                         return false;
                     }
                 }
@@ -114,14 +116,14 @@ public class TrackCommand implements CommandExecutor {
 
         for (int i = 0; i < inv.length; i++) {
             if (inv[i] != null) {
-                if (inv[i].getType().equals(Material.QUARTZ)){
+                if (inv[i].getType().equals(Material.EYE_OF_ENDER)){
                     int amount = inv[i].getAmount();
                     quantity = quantity + amount;
                 }
             }
         }
 
-        if (quantity >= 64) {
+        if (quantity >= 1) {
             return true;
         } else {
             return false;
@@ -129,6 +131,10 @@ public class TrackCommand implements CommandExecutor {
     }
 
     public static void removeQuartz(Player player) {
-        player.getInventory().removeItem(new ItemStack(Material.QUARTZ, 64));
+        player.getInventory().removeItem(new ItemStack(Material.EYE_OF_ENDER, 1));
+    }
+
+    public static void resetCompass(Player player) {
+        player.setCompassTarget(player.getWorld().getSpawnLocation());
     }
 }

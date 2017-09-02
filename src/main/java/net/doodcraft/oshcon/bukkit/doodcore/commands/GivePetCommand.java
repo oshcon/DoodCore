@@ -1,5 +1,6 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.GivePetTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
@@ -27,14 +28,14 @@ public class GivePetCommand implements Listener, CommandExecutor {
                     return false;
                 }
 
-                if (!Bukkit.getPlayer(args[0]).isOnline()) {
+                if (!CorePlayer.getPlayer(args[0]).isOnline()) {
                     sender.sendMessage("§cThat player could not be found.");
                     return false;
                 }
 
-                Bukkit.getPlayer(args[0]).sendMessage("§7Someone is preparing to send you a pet.");
+                CorePlayer.getPlayer(args[0]).sendMessage("§7Someone is preparing to send you a pet.");
                 sender.sendMessage("§7Now, find the pet you want to give and right click it.");
-                PlayerListener.requesting.put(((Player) sender).getUniqueId(), Bukkit.getPlayer(args[0]).getUniqueId());
+                PlayerListener.requesting.put(((Player) sender).getUniqueId(), CorePlayer.getPlayer(args[0]).getUniqueId());
                 PlayerListener.waiting.put(((Player) sender).getUniqueId(), System.currentTimeMillis());
                 new GivePetTimeoutTask(player);
                 return true;

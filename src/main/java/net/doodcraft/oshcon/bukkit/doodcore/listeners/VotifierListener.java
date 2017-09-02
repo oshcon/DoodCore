@@ -5,13 +5,20 @@ import com.vexsoftware.votifier.model.VotifierEvent;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.util.NumberConverter;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
+import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class VotifierListener implements Listener {
@@ -22,6 +29,8 @@ public class VotifierListener implements Listener {
         UUID uuid;
 
         uuid = PlayerMethods.getCrackedUUID(vote.getUsername());
+
+        StaticMethods.log("Received vote for " + vote.getUsername() + " from " + vote.getServiceName() + ":" + vote.getAddress());
 
         // Check each online player's name for case insensitivity.
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -56,6 +65,30 @@ public class VotifierListener implements Listener {
             data.set("Voting.Thanked", false);
             data.set("Voting.Total", data.getInteger("Voting.Total") + 1);
             data.save();
+        }
+    }
+
+    public static void giveVoteFlares(CorePlayer cPlayer) {
+        int votes = cPlayer.getTotalVotes();
+        int given = cPlayer.getTotalFlaresGiven();
+        int owed = votes - given;
+
+        if (owed >= 1) {
+            // They are owed vote flares
+            ItemStack flare = new ItemStack(Material.REDSTONE_TORCH_OFF, owed);
+            ItemMeta flareMeta = flare.getItemMeta();
+            flareMeta.setDisplayName("§c§lVote Flare");
+            List<String> lore = new ArrayList<>();
+            lore.add("Place me on the ground to win a random reward!");
+            flareMeta.setLore(lore);
+            flare.setItemMeta(flareMeta);
+            if (owed > 1) {
+                cPlayer.getPlayer().sendMessage("§aYou earned " + NumberConverter.convert(owed) + " vote flares.");
+            } else {
+                cPlayer.getPlayer().sendMessage("§You earned one vote flare.");
+            }
+            cPlayer.getPlayer().getInventory().addItem(flare);
+            cPlayer.setTotalFlaresGiven(given + owed);
         }
     }
 }

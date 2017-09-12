@@ -119,6 +119,10 @@ public class DoodCorePlugin extends JavaPlugin {
         if (Compatibility.isHooked("Votifier")) {
             registerEvents(plugin, new VotifierListener());
         }
+
+        if (Compatibility.isHooked("SuperVanish")) {
+            registerEvents(plugin, new VanishListener());
+        }
     }
 
     public static void registerEvents(Plugin plugin, Listener... listeners) {

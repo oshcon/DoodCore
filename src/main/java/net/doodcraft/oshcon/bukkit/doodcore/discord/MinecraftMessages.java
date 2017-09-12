@@ -14,7 +14,7 @@ public class MinecraftMessages {
     public static void broadcastJoin(CorePlayer cPlayer) {
         // Broadcast to everyone.
         if (!cPlayer.isVanished()) {
-            String login = Messages.parse(cPlayer, "§7<roleprefix><name> §7joined §e§oBending§7.");
+            String login = Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined §e§oBending§7.");
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (!cPlayer.getPlayer().equals(p)) {
                     sendPlainMessage(p, login);
@@ -32,7 +32,7 @@ public class MinecraftMessages {
     public static void broadcastQuit(CorePlayer cPlayer) {
         // Broadcast to everyone
         if (!cPlayer.isVanished()) {
-            String quit = Messages.parse(cPlayer, "§7<roleprefix><name> §7left the game.");
+            String quit = Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7left the game.");
             broadcastPlainMessage(quit);
             if (DiscordManager.toggled) {
                 if (!cPlayer.isIgnoringDiscord()) {

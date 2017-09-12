@@ -53,7 +53,7 @@ public class DiscordMessages {
                 public void run() {
                     try {
                         EmbedBuilder builder = new EmbedBuilder();
-                        builder.withDescription(StaticMethods.removeColor(":thought_bubble:   *" + cPlayer.getNick() + " " + message + "*"));
+                        builder.withDescription(StaticMethods.removeColor(":thought_balloon:   *" + cPlayer.getNick() + " " + message + "*"));
                         builder.withAuthorName(StaticMethods.removeColor(cPlayer.getName()));
                         builder.withAuthorIcon("https://crafatar.com/avatars/" + cPlayer.getName() + "?default=MHF_Steve&overlay");
                         builder.withTimestamp(System.currentTimeMillis());
@@ -160,24 +160,24 @@ public class DiscordMessages {
         for (Player p : Bukkit.getOnlinePlayers()) {
             CorePlayer cPlayer = CorePlayer.getPlayers().get(p.getUniqueId());
 
-            String name = p.getName();
-            if (cPlayer != null) {
+            if (cPlayer.isVanished()) {
+                String name = cPlayer.getName();
                 if (cPlayer.isCurrentlyAfk()) {
                     name = "[AFK] " + name;
                 }
                 if (cPlayer.isIgnoringDiscord()) {
                     name = "[Ignoring Discord] " + name;
                 }
-            }
 
-            names.add(name);
+                names.add(name);
+            }
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
             @Override
             public void run() {
                 try {
-                    if (Bukkit.getOnlinePlayers().size() <= 0) {
+                    if (CorePlayer.getPlayerCount() <= 0) {
                         EmbedBuilder builder = new EmbedBuilder();
                         builder.appendField("**`[IP]`**", "mc.doodcraft.net", true);
                         builder.appendField("**`[WHO]`**", "It doesn't look like anybody is online right now. :thinking:", false);

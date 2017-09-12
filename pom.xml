@@ -119,6 +119,14 @@
     </repositories>
 
     <dependencies>
+        <!--SuperVanish-->
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>supervanish</artifactId>
+            <version>LATEST</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/SuperVanish.jar</systemPath>
+        </dependency>
         <!--BukkitAPI-->
         <dependency>
             <groupId>org.bukkit</groupId>

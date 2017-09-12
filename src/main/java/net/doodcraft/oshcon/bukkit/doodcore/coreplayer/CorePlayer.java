@@ -3,6 +3,7 @@ package net.doodcraft.oshcon.bukkit.doodcore.coreplayer;
 import com.google.common.base.Joiner;
 import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
+import de.myzelyam.api.vanish.VanishAPI;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.afk.AfkHandler;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
@@ -795,6 +796,10 @@ public class CorePlayer {
             if (meta.asBoolean()) return true;
         }
 
+        if (Compatibility.isHooked("SuperVanish")) {
+            return VanishAPI.isInvisible(getPlayer());
+        }
+
         return false;
     }
 
@@ -823,5 +828,15 @@ public class CorePlayer {
         }
 
         return Bukkit.getPlayer(name);
+    }
+
+    public static int getPlayerCount() {
+        int count = 0;
+        for (CorePlayer c : getPlayers().values()) {
+            if (!c.isVanished()) {
+                count++;
+            }
+        }
+        return count;
     }
 }

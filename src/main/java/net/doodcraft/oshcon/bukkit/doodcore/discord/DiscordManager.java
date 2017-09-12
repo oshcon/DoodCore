@@ -63,7 +63,7 @@ public class DiscordManager {
                 Bukkit.getScheduler().runTaskAsynchronously(DoodCorePlugin.plugin, new Runnable() {
                     @Override
                     public void run() {
-                        DiscordManager.client.getChannelByID(Settings.discordChannel).changeTopic("ONLINE (IP: mc.doodcraft.net): " + Bukkit.getOnlinePlayers().size() + "/32 players online");
+                        DiscordManager.client.getChannelByID(Settings.discordChannel).changeTopic("ONLINE (IP: mc.doodcraft.net): " + CorePlayer.getPlayerCount() + "/42 players online");
                     }
                 });
             }
@@ -78,7 +78,7 @@ public class DiscordManager {
                     @Override
                     public void run() {
                         int game = DoodCorePlugin.random.nextInt(games.size());
-                        DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(CorePlayer.getPlayers().size())));
+                        DiscordManager.client.changePlayingText(games.get(game).replaceAll("<players>", String.valueOf(CorePlayer.getPlayerCount())));
                     }
                 });
             }

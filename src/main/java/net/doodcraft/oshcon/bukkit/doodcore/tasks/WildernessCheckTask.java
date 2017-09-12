@@ -117,7 +117,7 @@ public class WildernessCheckTask extends BukkitRunnable {
 
             y -= shift;
             block = block.getRelative(BlockFace.DOWN, shift);
-        } while (y > 0);
+        } while (y > 62);
 
         return -1;
     }

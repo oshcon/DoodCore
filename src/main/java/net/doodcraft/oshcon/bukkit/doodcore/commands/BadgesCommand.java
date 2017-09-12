@@ -5,7 +5,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

@@ -81,7 +81,7 @@ public class WarmupTeleportTask extends BukkitRunnable {
                     player.sendMessage(StaticMethods.addColor("&cThey moved, and could not be teleported."));
                 }
             }
-            this.player.sendMessage(StaticMethods.addColor("&cCancelled teleported due to movement."));
+            this.player.sendMessage(StaticMethods.addColor("&cCancelled teleportation due to movement."));
             teleporting.remove(this.uuid);
             this.cancel();
             return;

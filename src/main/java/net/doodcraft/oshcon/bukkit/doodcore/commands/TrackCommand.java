@@ -4,7 +4,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.CompassResetTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -43,6 +42,12 @@ public class TrackCommand implements CommandExecutor {
                 if (args.length == 1) {
                     if (hasEnoughQuartz(player)) {
                         if (CorePlayer.getPlayer(args[0]) != null) {
+
+                            if (CorePlayer.getPlayer(args[0]).equals(player)) {
+                                sender.sendMessage("§cYou cannot track yourself.");
+                                return false;
+                            }
+
                             if (CorePlayer.getPlayer(args[0]).hasPermission("core.command.track.untrackable")) {
                                 player.sendMessage("§cThat player cannot be tracked right now.");
                                 return false;

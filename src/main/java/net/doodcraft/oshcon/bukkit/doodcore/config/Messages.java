@@ -92,7 +92,7 @@ public class Messages {
         // PROJECTKORRA
         if (Compatibility.isHooked("ProjectKorra")) {
             try {
-                List<Element> elements = BendingPlayer.getBendingPlayer(cPlayer.getPlayer()).getElements();
+                List<Element> elements = cPlayer.getElements();
                 if (elements.size() > 1) {
                     line = line.replaceAll("<element>", "§5Avatar§r");
                 } else if (elements.size() == 1) {

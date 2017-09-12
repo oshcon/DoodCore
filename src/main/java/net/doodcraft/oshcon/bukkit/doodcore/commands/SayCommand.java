@@ -4,7 +4,7 @@ import com.google.common.base.Joiner;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
-import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordMessages;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -31,7 +31,7 @@ public class SayCommand implements CommandExecutor {
                         public void run() {
                             if (args.length >= 1) {
                                 Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8[§7<nick>§8] §b" + Joiner.on(" ").join(args)));
-                                DiscordManager.sendGameSay(player, Joiner.on(" ").join(args));
+                                DiscordMessages.sendGameSay(player, Joiner.on(" ").join(args));
                             } else {
                                 sender.sendMessage("§7Broadcast a message.");
                                 sender.sendMessage("§7Usage: §b/say The server will be restarting in 5m.");
@@ -48,7 +48,7 @@ public class SayCommand implements CommandExecutor {
                     public void run() {
                         if (args.length >= 1) {
                             Bukkit.broadcastMessage("§8[§dCONSOLE§8] §b" + Joiner.on(" ").join(args));
-                            DiscordManager.sendGameSay(null, Joiner.on(" ").join(args));
+                            DiscordMessages.sendGameSay(null, Joiner.on(" ").join(args));
                         } else {
                             sender.sendMessage("§7Broadcast a message.");
                             sender.sendMessage("§7Usage: §b/say The server will be restarting in 5m.");

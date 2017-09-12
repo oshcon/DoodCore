@@ -3,8 +3,6 @@ package net.doodcraft.oshcon.bukkit.doodcore.commands;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.TpaTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -55,6 +53,11 @@ public class TpahereCommand implements CommandExecutor {
 
                 if (CorePlayer.getPlayer(args[0]) == null) {
                     sender.sendMessage("§cThat player could not be found.");
+                    return false;
+                }
+
+                if (CorePlayer.getPlayer(args[0]).equals(player)) {
+                    sender.sendMessage("§cYou cannot teleport to yourself.");
                     return false;
                 }
 

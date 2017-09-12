@@ -5,6 +5,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.commands.DiscordCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.RoleSync;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
@@ -37,15 +38,19 @@ public class DiscordListener {
                             if (cPlayer != null) {
                                 event.getAuthor().getOrCreatePMChannel().sendMessage("Accepted " + player.getName() + "'s sync request. Your Discord and in-game profiles are now synchronized!");
                                 cPlayer.getPlayer().sendMessage("§7Your Discord user role (" + DiscordManager.getDiscordRankPrefix(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor()) + DiscordManager.getMatchingGameRank(DiscordManager.client.getGuildByID(Settings.discordGuild), event.getAuthor(), cPlayer) + "§7) and ID are now synchronized! §c❤");
+
                                 // Set Discord ID
                                 cPlayer.setDiscordUserId(event.getAuthor().getLongID());
                                 DiscordManager.awardPlayer(cPlayer);
                                 cPlayer.setSyncedOnce(true);
+
                                 // Add to ID map.
                                 Configuration idmap = DiscordManager.idMap();
                                 idmap.set(cPlayer.getDiscordId().toString(), cPlayer.getUniqueId().toString());
                                 idmap.save();
-                                DiscordManager.syncRank(cPlayer);
+
+                                // sync their role in case Discord has a role they do not have in game.
+                                RoleSync.syncRank(cPlayer);
                             } else {
                                 event.getAuthor().getOrCreatePMChannel().sendMessage("The player requesting the sync is no longer in-game. Cancelling their request.");
                             }
@@ -78,27 +83,23 @@ public class DiscordListener {
 
         if (event.getChannel().getLongID() == Settings.discordChannel) {
             if (event.getMessage().getContent().startsWith("!help")) {
-                DiscordManager.sendGameHelp();
+                DiscordMessages.sendGameHelp();
                 return;
             }
 
             if (event.getMessage().getContent().startsWith("!who")) {
-                DiscordManager.sendGameWho();
+                DiscordMessages.sendGameWho();
                 return;
             }
 
             if (event.getMessage().getContent().startsWith("!sync")) {
-                DiscordManager.sendSync(event.getAuthor());
-                return;
-            }
-
-            if (event.getMessage().getContent().startsWith("!nuke")) {
-                DiscordManager.sendNukeRoll(event.getAuthor());
+                DiscordMessages.sendSync(event.getAuthor());
                 return;
             }
 
             StaticMethods.log("[DISCORD] " + event.getAuthor().getName() + ": " + event.getMessage().getContent());
-            DiscordManager.broadcastToMinecraft("§8[§dDiscord§8]§r " + DiscordManager.getDiscordRankPrefix(event.getGuild(), event.getAuthor()) + event.getAuthor().getName() + "§8: §7" + event.getMessage());
+
+            MinecraftMessages.broadcastDiscordMessage("§8[§7Discord§8]§r " + DiscordManager.getDiscordRankPrefix(event.getGuild(), event.getAuthor()) + event.getAuthor().getName() + "§8: §7" + event.getMessage());
         }
     }
 

@@ -34,9 +34,15 @@ public class SeenCommand implements CommandExecutor {
                     Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + PlayerMethods.getCrackedUUID(args[0]) + ".yml");
                     if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
                         player.sendMessage("§7Status: §aONLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))));
+                        if (player.hasPermission("core.command.seen.location")) {
+                            player.sendMessage("§7LastLocation: §b" + cData.getString("LastLocation"));
+                        }
                         return true;
                     } else {
                         player.sendMessage("§7Status: §cOFFLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))));
+                        if (player.hasPermission("core.command.seen.location")) {
+                            player.sendMessage("§7LastLocation: §b" + cData.getString("LastLocation"));
+                        }
                         return true;
                     }
                 }
@@ -52,10 +58,10 @@ public class SeenCommand implements CommandExecutor {
                 if (new File(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + PlayerMethods.getCrackedUUID(args[0]) + ".yml").exists()) {
                     Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + PlayerMethods.getCrackedUUID(args[0]) + ".yml");
                     if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
-                        StaticMethods.log("§7Status: §aONLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))));
+                        StaticMethods.log("§7Status: §aONLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))) + "\n§7LastLocation: §b" + cData.getString("LastLocation"));
                         return true;
                     } else {
-                        StaticMethods.log("§7Status: §cOFFLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))));
+                        StaticMethods.log("§7Status: §cOFFLINE\n§7LastJoined: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastJoined"))) + "\n§7LastQuit: §b" + StaticMethods.getTimeStamp(Long.valueOf(cData.getString("LastQuit"))) + "\n§7LastLocation: §b" + cData.getString("LastLocation"));
                         return true;
                     }
                 }

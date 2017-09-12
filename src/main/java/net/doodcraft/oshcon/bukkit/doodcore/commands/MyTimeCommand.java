@@ -40,7 +40,7 @@ public class MyTimeCommand implements CommandExecutor {
                             } catch (Exception ex) {
                                 player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
                             }
-                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
+                            if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000) && !cPlayer.isVeteran()) {
                                 player.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                             } else {
                                 player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
@@ -54,19 +54,25 @@ public class MyTimeCommand implements CommandExecutor {
                         }
 
                         // Not online, lets check for stored player data
-                        UUID uuid = PlayerMethods.getCrackedUUID(args[0]);
-                        if (new File(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml").exists()) {
-                            Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml");
-                            if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
-                                player.sendMessage("§7" + args[0] + "'s Time: ");
-                                player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
-                                player.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
-                                player.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
-                                return true;
+                        File directory = new File(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data");
+                        File[] files = directory.listFiles();
+
+                        if (files != null) {
+                            for (File f : files) {
+                                if (f.getName().equalsIgnoreCase(PlayerMethods.getCrackedUUID(args[0]).toString() + ".yml")) {
+                                    Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + f.getName());
+                                    if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
+                                        player.sendMessage("§7" + args[0] + "'s Time: ");
+                                        player.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
+                                        player.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
+                                        player.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
+                                        return true;
+                                    }
+                                }
                             }
                         }
 
-                        player.sendMessage("Player does not exist. Check your spelling?");
+                        player.sendMessage("§cCannot find the specified player. Offline checking is CaSe SeNsItIvE.");
                         return false;
                     }
                 }
@@ -85,7 +91,7 @@ public class MyTimeCommand implements CommandExecutor {
                     } catch (Exception ex) {
                         player.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
                     }
-                    if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
+                    if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000) && !cPlayer.isVeteran()) {
                         player.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                     } else {
                         player.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
@@ -112,7 +118,7 @@ public class MyTimeCommand implements CommandExecutor {
                         } catch (Exception ex) {
                             sender.sendMessage("§8:: §7Next Reward: §3" + StaticMethods.getDurationBreakdown(1L));
                         }
-                        if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000)) {
+                        if (cPlayer.getCurrentActiveTime() < (Settings.veteranTime * 1000) && !cPlayer.isVeteran()) {
                             sender.sendMessage("§8:: §7Veteran Rankup: §3" + StaticMethods.getDurationBreakdown((Settings.veteranTime * 1000) - cPlayer.getCurrentActiveTime()));
                         } else {
                             sender.sendMessage("§8:: §7Veteran Rankup: §8[§aACQUIRED§8]");
@@ -126,19 +132,25 @@ public class MyTimeCommand implements CommandExecutor {
                     }
 
                     // Not online, lets check for stored player data
-                    UUID uuid = PlayerMethods.getCrackedUUID(args[0]);
-                    if (new File(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml").exists()) {
-                        Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + uuid + ".yml");
-                        if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
-                            sender.sendMessage("§7" + args[0] + "'s Time: ");
-                            sender.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
-                            sender.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
-                            sender.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
-                            return true;
+                    File directory = new File(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data");
+                    File[] files = directory.listFiles();
+
+                    if (files != null) {
+                        for (File f : files) {
+                            if (f.getName().equalsIgnoreCase(PlayerMethods.getCrackedUUID(args[0]).toString() + ".yml")) {
+                                Configuration cData = new Configuration(DoodCorePlugin.plugin.getDataFolder() + File.separator + "data" + File.separator + f.getName());
+                                if (Bukkit.getPlayer(UUID.fromString(cData.getString("UUID"))) != null) {
+                                    sender.sendMessage("§7" + args[0] + "'s Time: ");
+                                    sender.sendMessage("§8:: §7Online Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime")) + Long.valueOf(cData.getString("AfkTime"))));
+                                    sender.sendMessage("§8:: §7Active Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.ActiveTime"))));
+                                    sender.sendMessage("§8:: §7AFK Time: §3" + StaticMethods.getDurationBreakdown(Long.valueOf(cData.getString("Time.AfkTime"))));
+                                    return true;
+                                }
+                            }
                         }
                     }
 
-                    sender.sendMessage("Player does not exist. Check your spelling?");
+                    sender.sendMessage("§cCannot find the specified player. Offline checking is CaSe SeNsItIvE.");
                     return false;
                 }
 

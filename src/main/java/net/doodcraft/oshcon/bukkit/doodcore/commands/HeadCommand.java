@@ -1,12 +1,6 @@
 package net.doodcraft.oshcon.bukkit.doodcore.commands;
 
-import com.google.common.base.Joiner;
-import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
-import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
-import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,7 +16,6 @@ public class HeadCommand implements CommandExecutor {
             if (sender instanceof Player) {
 
                 Player player = (Player) sender;
-                CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 if (!PlayerMethods.hasPermission(player, "core.command.head", true)) {
                     return false;
@@ -33,14 +26,7 @@ public class HeadCommand implements CommandExecutor {
                     return false;
                 }
 
-                ItemStack head = new ItemStack(Material.SKULL_ITEM, (short) 3);
-                SkullMeta headMeta = (SkullMeta) head.getItemMeta();
-                headMeta.setOwner(args[0]);
-                headMeta.setDisplayName(args[0]);
-                head.setDurability((short) 3);
-                head.setItemMeta(headMeta);
-
-                player.getInventory().addItem(head);
+                player.getInventory().addItem(getPlayerHead(args[0]));
                 player.sendMessage("Giving head. ;)");
                 return true;
             } else {
@@ -49,5 +35,15 @@ public class HeadCommand implements CommandExecutor {
             }
         }
         return false;
+    }
+
+    public static ItemStack getPlayerHead(String name) {
+        ItemStack head = new ItemStack(Material.SKULL_ITEM);
+        SkullMeta headMeta = (SkullMeta) head.getItemMeta();
+        headMeta.setOwner(name);
+        headMeta.setDisplayName("§r" + name + "'s Head");
+        head.setDurability((short) 3);
+        head.setItemMeta(headMeta);
+        return head;
     }
 }

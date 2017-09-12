@@ -5,7 +5,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.TpaTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.WarmupTeleportTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

@@ -9,9 +9,10 @@ import net.doodcraft.oshcon.bukkit.doodcore.badges.Badge;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeAwardEvent;
 import net.doodcraft.oshcon.bukkit.doodcore.badges.BadgeType;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
+import net.doodcraft.oshcon.bukkit.doodcore.compat.Vault;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
-import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordMessages;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.AfkCheckTask;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.DiscordUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.WarmupTeleportTask;
@@ -60,13 +61,6 @@ public class CorePlayer {
 
         cPlayer.loadData();
 
-        // Alerts
-        if (DiscordManager.toggled) {
-            if (!cPlayer.isIgnoringDiscord()) {
-                DiscordManager.sendGameLogin(player);
-            }
-        }
-
         // Create Tasks
         UUID uuid = cPlayer.getUniqueId();
 
@@ -85,24 +79,12 @@ public class CorePlayer {
 
         // Other Stuff
         CorePlayer.activeTimes.putIfAbsent(cPlayer.getUniqueId(), System.currentTimeMillis());
-        DiscordManager.syncRank(cPlayer);
+        RoleSync.syncRank(cPlayer);
         new DiscordUpdateTask().runTaskAsynchronously(DoodCorePlugin.plugin);
 
         cPlayer.setLastJoined(System.currentTimeMillis());
 
         cPlayer.reload();
-
-        List<String> pKill = new ArrayList<>();
-        for (String kill : cPlayer.getKills().keySet()) {
-            if (kill.startsWith("Player:")) {
-                pKill.add(kill);
-            }
-        }
-//        if (pKill.size() >= 50) {
-//            cPlayer.addBadge(new Badge(BadgeType.PLAYER_SLAYER));
-//        }
-
-        Bukkit.broadcastMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined Bending."));
 
         new CorePlayerCreateEvent(cPlayer);
         return cPlayer;
@@ -228,11 +210,11 @@ public class CorePlayer {
         }
 
         if (badgeNames.size() > 0) {
-            for (String name : badgeNames) {
-                if (!data.getStringList("Badges").contains(name)) {
-                    data.addToStringList("Badges", name);
-                }
+            if (data.get("Badges") != null) {
+                data.remove("Badges");
             }
+
+            data.set("Badges", badgeNames);
         }
 
         data.save();
@@ -282,9 +264,7 @@ public class CorePlayer {
             if (data.get("Badges") != null) {
                 if (data.getStringList("Badges").size() > 0) {
                     for (String b : data.getStringList("Badges")) {
-                        if (BadgeType.isBadgeType(b.toUpperCase())) {
-                            getBadges().add(new Badge(b.toUpperCase()));
-                        }
+                        getBadges().add(new Badge(b.toUpperCase()));
                     }
                 }
             }
@@ -296,8 +276,6 @@ public class CorePlayer {
                 setThankedForOfflineVote(true);
             }
 
-//            addBadge(new Badge(BadgeType.BETA_TESTER));
-
             saveData();
             reload();
         }
@@ -305,7 +283,7 @@ public class CorePlayer {
 
     public void reload() {
         // Update display name.
-        getPlayer().setDisplayName(StaticMethods.addColor(this.nick));
+        getPlayer().setDisplayName(StaticMethods.addColor(getColorPrefix() + this.nick + "§r"));
 
         // Update tablist name.
         if (this.afkStatus) {
@@ -322,12 +300,6 @@ public class CorePlayer {
     // Only invoke if the player is online and is leaving.
     public void destroy() {
         UUID uuid = getUniqueId();
-
-        if (DiscordManager.toggled) {
-            if (!isIgnoringDiscord()) {
-                DiscordManager.sendGameQuit(getPlayer());
-            }
-        }
 
         setActiveTime(getCurrentActiveTime());
         setAfkTime(getCurrentAfkTime());
@@ -372,8 +344,10 @@ public class CorePlayer {
                 activeTimes.remove(this.uuid);
                 if (reason == null) {
                     Bukkit.broadcastMessage(PlayerMethods.getPlayerPrefix(getPlayer()) + getPlayer().getDisplayName() + " §7is now AFK.");
+                    DiscordMessages.sendAfkMessage(getPlayer(), "Idling");
                 } else {
                     Bukkit.broadcastMessage(PlayerMethods.getPlayerPrefix(getPlayer()) + getPlayer().getDisplayName() + " §7is now AFK. [§3" + reason + "§7]");
+                    DiscordMessages.sendAfkMessage(getPlayer(), reason);
                 }
             }
         } else {
@@ -382,7 +356,16 @@ public class CorePlayer {
                 setAfkTime(getCurrentAfkTime());
                 afkTimes.remove(this.uuid);
                 CorePlayer.activeTimes.putIfAbsent(this.uuid, System.currentTimeMillis());
-                Bukkit.broadcastMessage(PlayerMethods.getPlayerPrefix(getPlayer()) + getPlayer().getDisplayName() + " §7is no longer AFK.");
+                if (!reason.equals("Quitting")) {
+                    final String n = this.getColorPrefix() + this.nick;
+                    Bukkit.getScheduler().runTask(DoodCorePlugin.plugin, new Runnable() {
+                        @Override
+                        public void run() {
+                            Bukkit.broadcastMessage(n + " §7is no longer AFK.");
+                        }
+                    });
+                    DiscordMessages.sendUnAfkMessage(getPlayer());
+                }
             }
             AfkHandler.lastAction.put(this.uuid, System.currentTimeMillis());
         }
@@ -707,10 +690,27 @@ public class CorePlayer {
     }
 
     public Boolean hasBadge(Badge badge) {
-        if (this.badges.contains(badge)) {
-            return true;
+        return getBadges().contains(badge);
+    }
+
+    public Boolean hasBadge(BadgeType type) {
+        for (Badge b : getBadges()) {
+            if (b.getType().equals(type)) {
+                return true;
+            }
         }
-        return getData().getStringList("Badges").contains(badge.getName());
+
+        return false;
+    }
+
+    public Boolean hasBadge(String string) {
+        for (Badge b : getBadges()) {
+            if (string.equalsIgnoreCase(b.getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // KILLS
@@ -798,10 +798,22 @@ public class CorePlayer {
         return false;
     }
 
+    public String getColorPrefix() {
+        return PlayerMethods.getPlayerPrefix(getPlayer());
+    }
+
+    public Boolean isVeteran() {
+        return Arrays.toString(Vault.permission.getPlayerGroups(null, getPlayer())).contains("Veteran");
+    }
+
     // UTIL
     public static Player getPlayer(String name) {
 
         for (CorePlayer cPlayer : getPlayers().values()) {
+            if (cPlayer.isVanished()) {
+                // Ignore those who "aren't online"
+                return null;
+            }
             if (name.equalsIgnoreCase(cPlayer.getName())) {
                 return cPlayer.getPlayer();
             }

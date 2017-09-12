@@ -9,11 +9,9 @@ import net.doodcraft.oshcon.bukkit.doodcore.config.Configuration;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordMessages;
 import net.doodcraft.oshcon.bukkit.doodcore.entitymanagement.EntityManagement;
-import net.doodcraft.oshcon.bukkit.doodcore.listeners.ChatListener;
-import net.doodcraft.oshcon.bukkit.doodcore.listeners.EntityListener;
-import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
-import net.doodcraft.oshcon.bukkit.doodcore.listeners.VotifierListener;
+import net.doodcraft.oshcon.bukkit.doodcore.listeners.*;
 import net.doodcraft.oshcon.bukkit.doodcore.pvpmanager.PvPLogger;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
@@ -57,9 +55,9 @@ public class DoodCorePlugin extends JavaPlugin {
             ex.printStackTrace();
         }
 
-        DiscordManager.sendGameOnline();
+        DiscordMessages.sendGameOnline();
 
-        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Lag(), 100L, 1L);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Lag(), 100L, 1L);
     }
 
     @Override
@@ -72,7 +70,7 @@ public class DoodCorePlugin extends JavaPlugin {
         if (DiscordManager.client != null) {
             if (DiscordManager.client.isLoggedIn()) {
                 DiscordManager.client.getChannelByID(Settings.discordChannel).changeTopic("OFFLINE (mc.doodcraft.net)");
-                DiscordManager.sendGameOffline();
+                DiscordMessages.sendGameOffline();
                 DiscordManager.client.logout();
             }
         }
@@ -116,6 +114,7 @@ public class DoodCorePlugin extends JavaPlugin {
         registerEvents(plugin, new BadgeListener());
         registerEvents(plugin, new ChatListener());
         registerEvents(plugin, new EntityListener());
+        registerEvents(plugin, new CoreSignListener());
 
         if (Compatibility.isHooked("Votifier")) {
             registerEvents(plugin, new VotifierListener());
@@ -133,10 +132,10 @@ public class DoodCorePlugin extends JavaPlugin {
         File[] files = directory.listFiles();
 
         if (files != null) {
+            StaticMethods.log("Caching " + files.length + " player names/nicks.");
             for (File f : files) {
                 Configuration cData = new Configuration(plugin.getDataFolder() + File.separator + "data" + File.separator + f.getName());
                 if (cData.get("Name") != null) {
-                    StaticMethods.log("Caching: " + f.getName() + " : " + cData.getString("Name") + " : " + cData.getString("Nick"));
                     CorePlayer.names.put(cData.getString("Name"), cData.getString("Nick"));
                 }
             }

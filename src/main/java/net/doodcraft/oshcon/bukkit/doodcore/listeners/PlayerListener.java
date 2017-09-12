@@ -1,15 +1,13 @@
 package net.doodcraft.oshcon.bukkit.doodcore.listeners;
 
-import at.pcgamingfreaks.MarriageMaster.Bukkit.Commands.MarryChat;
-import at.pcgamingfreaks.MarriageMaster.Bukkit.MarriageMaster;
-import com.gmail.nossr50.api.ChatAPI;
+import fr.xephi.authme.api.v3.AuthMeApi;
 import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.TrackCommand;
-import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Messages;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
-import net.doodcraft.oshcon.bukkit.doodcore.pvpmanager.PvPLogger;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordMessages;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.MinecraftMessages;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.PlayerUpdateTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.CommandCooldowns;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
@@ -18,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,20 +35,42 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        PlayerMethods.loadCorePlayer(player);
-        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 60L, 20L);
+
+        CorePlayer cPlayer = PlayerMethods.loadCorePlayer(player);
+
         event.setJoinMessage(null);
+        String login = Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7joined §e§oBending§7.");
+        player.sendMessage(login);
+
+        new PlayerUpdateTask(player.getUniqueId()).runTaskTimer(DoodCorePlugin.plugin, 60L, 20L);
+
+        if (!player.hasPlayedBefore()) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (!p.equals(player)) {
+                    p.sendMessage("§8§m--§8[ §bWelcome " + cPlayer.getColorPrefix() + cPlayer.getNick() + "§b to DoodCraft! §8]§m--");
+                }
+            }
+        }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+
         CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
+
         if (cPlayer.isCurrentlyAfk()) {
             cPlayer.setAfkStatus(false, "Quitting");
         }
+
         TrackCommand.resetCompass(player);
-        event.setQuitMessage(Messages.parse(cPlayer, "§8[§7<time>§8] §7<roleprefix><name> §7quit."));
+
+        event.setQuitMessage(null);
+
+        if (AuthMeApi.getInstance().isAuthenticated(cPlayer.getPlayer())) {
+            MinecraftMessages.broadcastQuit(cPlayer);
+        }
+
         PlayerMethods.dumpCorePlayer(player);
     }
 
@@ -58,9 +79,18 @@ public class PlayerListener implements Listener {
         ItemStack flare = event.getItemInHand();
         if (flare.hasItemMeta()) {
             if (flare.getItemMeta().hasDisplayName()) {
-                if (flare.getItemMeta().getDisplayName().equals("§c§lVote Flare")) {
-                    event.setCancelled(true);
-                    event.getPlayer().sendMessage("Vote flares cannot be used, yet.");
+                if (flare.getItemMeta().getDisplayName().equals("§3§lVote Flare")) {
+                    if (event.getBlockPlaced().getRelative(BlockFace.DOWN).equals(event.getBlockAgainst())) {
+                        // It was placed on the ground
+                        if (!VotifierListener.runFlareReward(flare, event.getBlockPlaced().getLocation(), CorePlayer.getPlayers().get(event.getPlayer().getUniqueId()))) {
+                            event.getPlayer().sendMessage("§cThe flare cannot be used here.");
+                            event.setCancelled(true);
+                        }
+                    } else {
+                        // It was placed on a wall
+                        event.getPlayer().sendMessage("§cThe flare must be placed on the ground.");
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
@@ -85,7 +115,9 @@ public class PlayerListener implements Listener {
         CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
         if (cPlayer != null) {
-            cPlayer.setAfkStatus(false, "");
+            if (!cPlayer.isVanished()) {
+                cPlayer.setAfkStatus(false, "Interacting");
+            }
         }
     }
 
@@ -103,40 +135,6 @@ public class PlayerListener implements Listener {
         if (PlayerMethods.isOffHandClick(event)) {
             return;
         }
-
-//        // TODO: Clean up.
-//        if (player.getInventory().getItemInMainHand() != null) {
-//            if (player.getInventory().getItemInMainHand().hasItemMeta()) {
-//                if (player.getInventory().getItemInMainHand().getItemMeta().hasDisplayName()) {
-//                    if (StaticMethods.removeColor(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()).equalsIgnoreCase("unsitter")) {
-//                        if (player.hasPermission("core.temp.unsit")) {
-//                            Entity entity = event.getRightClicked();
-//                            if (entity instanceof Tameable) {
-//                                Tameable tameable = (Tameable) entity;
-//                                if (tameable.isTamed()) {
-//                                    if (entity instanceof Wolf) {
-//                                        Wolf wolf = (Wolf) entity;
-//                                        if (wolf.isSitting()) {
-//                                            wolf.setSitting(false);
-//                                        } else {
-//                                            wolf.setSitting(true);
-//                                        }
-//                                    }
-//                                    if (entity instanceof Ocelot) {
-//                                        Ocelot wolf = (Ocelot) entity;
-//                                        if (wolf.isSitting()) {
-//                                            wolf.setSitting(false);
-//                                        } else {
-//                                            wolf.setSitting(true);
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
         Bukkit.getScheduler().runTaskLater(DoodCorePlugin.plugin, new Runnable() {
 
@@ -192,7 +190,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        DiscordManager.sendGameDeath(event.getEntity(), event.getDeathMessage());
+        DiscordMessages.sendGameDeath(event.getEntity(), event.getDeathMessage());
     }
 
     @EventHandler

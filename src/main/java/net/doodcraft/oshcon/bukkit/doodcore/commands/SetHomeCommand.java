@@ -20,6 +20,11 @@ public class SetHomeCommand implements CommandExecutor {
                     return false;
                 }
 
+                if (!PlayerMethods.canBuild(player, player.getLocation().getBlock())) {
+                    player.sendMessage("§cYou cannot set a home here.");
+                    return false;
+                }
+
                 CorePlayer cPlayer = CorePlayer.getPlayers().get(player.getUniqueId());
 
                 StaticMethods.log("Saving " + StaticMethods.getPreciseLocString(player.getLocation()) + " for " + player.getName());

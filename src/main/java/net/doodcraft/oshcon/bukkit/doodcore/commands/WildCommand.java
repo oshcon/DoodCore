@@ -6,7 +6,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.tasks.WildernessSearchTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
-import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

@@ -4,6 +4,7 @@ import mkremins.fanciful.FancyMessage;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.listeners.VotifierListener;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
@@ -28,7 +29,7 @@ public class CoreCommand implements CommandExecutor {
                 }
 
                 if (args.length == 0) {
-                    sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills");
+                    sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills, flare, prize");
                     return true;
                 }
 
@@ -112,10 +113,10 @@ public class CoreCommand implements CommandExecutor {
 
                 if (args[0].equalsIgnoreCase("listkills")) {
                     if (args.length > 1) {
-                        if (CorePlayer.getPlayer(args[2]) != null) {
+                        if (CorePlayer.getPlayer(args[1]) != null) {
                             CorePlayer killer = CorePlayer.getPlayers().get(CorePlayer.getPlayer(args[2]).getUniqueId());
                             if (killer.getKills().size() > 0) {
-                                sender.sendMessage(killer.getName() + "'s kills:");
+                                sender.sendMessage(killer.getName() + "'s Kills:");
                                 for (String kill : killer.getKills().keySet()) {
                                     sender.sendMessage(kill + ": " + killer.getKills().get(kill));
                                 }
@@ -134,7 +135,33 @@ public class CoreCommand implements CommandExecutor {
                     return false;
                 }
 
-                sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills");
+                if (args[0].equalsIgnoreCase("flare")) {
+                    if (args[1] != null) {
+                        int amount = Integer.valueOf(args[1]);
+                        if (args[2] != null) {
+                            if (CorePlayer.getPlayer(args[2]) != null) {
+                                player.getInventory().addItem(VotifierListener.getVoteFlareItem(CorePlayer.getPlayer(args[2]), amount));
+                                return true;
+                            }
+                        }
+                    }
+
+                    player.sendMessage("Invalid args.");
+                    return true;
+                }
+
+                if (args[0].equalsIgnoreCase("prize")) {
+                    if (args[1] != null) {
+                        int prize = Integer.valueOf(args[1]);
+                        VotifierListener.givePrize(CorePlayer.getPlayers().get(player.getUniqueId()), player.getLocation(), prize);
+                        return true;
+                    }
+
+                    player.sendMessage("Invalid args.");
+                    return true;
+                }
+
+                sender.sendMessage("Valid commands: reload, purge, togglediscord, tps, uuid, listkills, flare, prize");
                 return false;
             } else {
                 if (args.length == 0) {

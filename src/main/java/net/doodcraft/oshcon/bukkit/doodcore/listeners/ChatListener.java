@@ -6,6 +6,8 @@ import com.gmail.nossr50.api.ChatAPI;
 import net.doodcraft.oshcon.bukkit.doodcore.compat.Compatibility;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordManager;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.DiscordMessages;
+import net.doodcraft.oshcon.bukkit.doodcore.discord.MinecraftMessages;
 import net.doodcraft.oshcon.bukkit.doodcore.pvpmanager.PvPLogger;
 import net.doodcraft.oshcon.bukkit.doodcore.util.CommandCooldowns;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
@@ -16,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import sx.blah.discord.handle.obj.IUser;
 
 import java.util.UUID;
 
@@ -84,7 +87,7 @@ public class ChatListener implements Listener {
         String message = event.getMessage();
 
         if (cPlayer != null) {
-            cPlayer.setAfkStatus(false, "");
+            cPlayer.setAfkStatus(false, "Chatting");
         }
 
         // Check if another plugin modifies the recipient list, if not, it should match the online count.
@@ -111,10 +114,25 @@ public class ChatListener implements Listener {
         event.getRecipients().clear();
 
         if (!event.isCancelled()) {
+
+            // @mention Discord users
             if (DiscordManager.toggled) {
                 if (DiscordManager.client != null) {
-                    // TODO: Allow @mentioning a user from in-game.
-                    DiscordManager.sendGameChat(player, StaticMethods.removeColor(message));
+                    String[] part = message.split(" ");
+                    for (String s : part) {
+                        if (s.startsWith("@")) {
+                            // could be a mention?
+                            for (IUser u : DiscordManager.client.getUsers()) {
+                                String n = s.replaceAll("@", "");
+                                if (u.getName().equalsIgnoreCase(n)) {
+                                    // The user exists in the guild, replace this part of the message with a mention.
+                                    message = message.replaceAll(s, "<@" + u.getLongID() + ">");
+                                }
+                            }
+                        }
+                    }
+
+                    DiscordMessages.sendGameChat(player, StaticMethods.removeColor(message));
                 }
             }
 
@@ -125,7 +143,7 @@ public class ChatListener implements Listener {
                 msg = StaticMethods.removeColor(event.getMessage());
             }
 
-            DiscordManager.broadcastJson(player, msg);
+            MinecraftMessages.broadcastFancyChat(player, msg);
         }
     }
 }

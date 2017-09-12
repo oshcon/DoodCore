@@ -172,3 +172,12 @@ permissions:
   core.command.head:
     description: Spawn player heads
     default: OP
+  core.bypass.towncheck:
+    description: Bypass town distance checks
+    default: OP
+  core.command.homes.others:
+    description: Displays others homes
+    default: OP
+  core.command.seen.location:
+    description: Displays players last known location
+    default: OP

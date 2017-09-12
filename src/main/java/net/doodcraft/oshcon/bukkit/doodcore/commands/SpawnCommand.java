@@ -4,7 +4,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.tasks.WarmupTeleportTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.Lag;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
-import net.doodcraft.oshcon.bukkit.doodcore.util.TownDistance;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -33,7 +32,7 @@ public class SpawnCommand implements CommandExecutor {
                 }
 
                 player.sendMessage(StaticMethods.addColor("&7Preparing to teleport you to spawn, do not move..."));
-                new WarmupTeleportTask(player, Bukkit.getWorlds().get(0).getSpawnLocation(), null, "§7You are now at spawn.", "spawn", 5000);
+                new WarmupTeleportTask(player, Bukkit.getWorlds().get(0).getSpawnLocation().add(0.5, 0, 0.5), null, "§7You are now at spawn.", "spawn", 5000);
                 return true;
             } else {
                 sender.sendMessage("Console can't use this command.");

@@ -4,6 +4,7 @@ import net.doodcraft.oshcon.bukkit.doodcore.DoodCorePlugin;
 import net.doodcraft.oshcon.bukkit.doodcore.commands.BackCommand;
 import net.doodcraft.oshcon.bukkit.doodcore.config.Settings;
 import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
+import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
 import net.doodcraft.oshcon.bukkit.doodcore.util.StaticMethods;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -142,6 +143,10 @@ public class PvPLogger implements Listener {
                 CorePlayer cPlayerAggressor = CorePlayer.getPlayers().get(aggressor.getUniqueId());
 
                 if (cPlayerVictim != null) {
+                    if (cPlayerVictim.isVanished()) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     if (cPlayerVictim.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayerVictim.getWarnedPVPExpiration()) {
                         event.setCancelled(true);
                         int timeLeft = Math.toIntExact(((Settings.pvpProtection * 1000) - cPlayerVictim.getCurrentActiveTime())/1000);
@@ -151,6 +156,10 @@ public class PvPLogger implements Listener {
                 }
 
                 if (cPlayerAggressor != null) {
+                    if (cPlayerAggressor.isVanished()) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     if (cPlayerAggressor.getCurrentActiveTime() < (Settings.pvpProtection * 1000) && !cPlayerAggressor.getWarnedPVPExpiration()) {
                         event.setCancelled(true);
                         int timeLeft = Math.toIntExact((Settings.pvpProtection * 1000) - cPlayerAggressor.getCurrentActiveTime());
@@ -196,19 +205,47 @@ public class PvPLogger implements Listener {
 
         if (event.getEntity().getKiller() != null) {
             if (event.getEntity().getKiller() instanceof Player) {
-                Player killer = event.getEntity().getKiller();
-                CorePlayer cKiller = CorePlayer.getPlayers().get(killer.getUniqueId());
-                dropInventory(event.getEntity());
-                dropHead(event.getEntity(), cKiller);
-                cKiller.addKill(event.getEntity());
+                if (!event.getEntity().getKiller().equals(event.getEntity())) {
+                    Player killer = event.getEntity().getKiller();
+                    CorePlayer cKiller = CorePlayer.getPlayers().get(killer.getUniqueId());
 
-                event.getEntity().sendMessage("§cYou dropped your inventory due to PvP.");
-                // Add a method to drop player heads.
-                return;
+                    // Set keep inventory to true to avoid any potential duplication glitches in the the future.
+                    event.setKeepInventory(true);
+                    event.getEntity().sendMessage("§cYou dropped your entire inventory due to PvP.");
+                    dropInventory(event.getEntity());
+
+                    dropHead(event.getEntity(), cKiller);
+
+                    cKiller.addKill(event.getEntity());
+                    return;
+                }
+            } else {
+                // Drop everything except armor and itembar. This requires keepinventory to be on.
+                event.setKeepInventory(true);
+                dropPartialInventory(event.getEntity());
             }
         }
 
         BackCommand.addBackLocation(event.getEntity());
+    }
+
+    public static void dropPartialInventory(Player player) {
+        // Supporters do not drop any items.
+        if (PlayerMethods.isSupporter(player)) {
+            return;
+        }
+        int i = 0;
+        while (i <= 45) {
+            // If it's not in the armor slots, offhand slot, or itembar:
+            if ((i >= 0 && i <= 4) || (i >= 9 && i <= 35)) {
+                if (player.getInventory().getItem(i) != null) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), player.getInventory().getItem(i));
+                    ItemStack item = player.getInventory().getItem(i);
+                    player.getInventory().removeItem(item);
+                }
+            }
+            i++;
+        }
     }
 
     public static void dropInventory(Player player) {
@@ -226,7 +263,7 @@ public class PvPLogger implements Listener {
     public static void dropHead(Player player, CorePlayer cKiller) {
         if (cKiller.getKills().size() > 1) {
             if (!cKiller.getKills().containsKey("Player:" + player.getName())) {
-                ItemStack item = new ItemStack(Material.SKULL_ITEM, (short) 3);
+                ItemStack item = new ItemStack(Material.SKULL_ITEM);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
                 meta.setOwner(player.getName());
                 meta.setDisplayName("§r" + player.getName() + "'s Head");

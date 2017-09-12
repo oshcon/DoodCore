@@ -4,7 +4,6 @@ import net.doodcraft.oshcon.bukkit.doodcore.coreplayer.CorePlayer;
 import net.doodcraft.oshcon.bukkit.doodcore.listeners.PlayerListener;
 import net.doodcraft.oshcon.bukkit.doodcore.tasks.GivePetTimeoutTask;
 import net.doodcraft.oshcon.bukkit.doodcore.util.PlayerMethods;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -28,8 +27,13 @@ public class GivePetCommand implements Listener, CommandExecutor {
                     return false;
                 }
 
-                if (!CorePlayer.getPlayer(args[0]).isOnline()) {
+                if (CorePlayer.getPlayer(args[0]) == null) {
                     sender.sendMessage("§cThat player could not be found.");
+                    return false;
+                }
+
+                if (CorePlayer.getPlayer(args[0]).equals(player)) {
+                    sender.sendMessage("§cYou cannot give yourself your own pets.");
                     return false;
                 }
 

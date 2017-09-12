@@ -13,7 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
+import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,8 @@ import java.util.logging.Logger;
 
 public class StaticMethods {
 
-    private static SimpleDateFormat simpleTimeStamp = new SimpleDateFormat("hh:mm");
+    private static Format simpleTimeStamp = new SimpleDateFormat("hh:mm");
+    private static Format timeStamp = new SimpleDateFormat("MMM d, yyyy [HH:mma z]");
 
     public static double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
@@ -37,8 +38,8 @@ public class StaticMethods {
     }
 
     public static String getTimeStamp(Long time) {
-        Timestamp stamp = new Timestamp(time);
-        return stamp.toString();
+        Date date = new Date(time);
+        return timeStamp.format(date);
     }
 
     public static String getDurationBreakdown(long millis) {
